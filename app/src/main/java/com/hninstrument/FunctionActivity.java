@@ -9,12 +9,14 @@ import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
+import com.trello.rxlifecycle2.components.RxActivity;
+
 
 /**
  * Created by zbsz on 2017/11/27.
  */
 
-public abstract class FunctionActivity  extends Activity implements IPhotoView, IIDCardView {
+public abstract class FunctionActivity extends RxActivity implements IPhotoView, IIDCardView {
     public IDCardPresenter idp = IDCardPresenter.getInstance();
 
     public PhotoPresenter pp = PhotoPresenter.getInstance();
@@ -60,4 +62,9 @@ public abstract class FunctionActivity  extends Activity implements IPhotoView, 
         pp.PhotoPresenterSetView(null);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        idp.idCardClose();
+    }
 }

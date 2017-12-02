@@ -25,6 +25,7 @@ import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Retrofit.Request.RequestModule.CompareRequestBean;
 import com.hninstrument.Retrofit.Response.ResponseModule.CompareResponseBean;
 import com.hninstrument.Retrofit.RetrofitGenerator;
+import com.hninstrument.Retrofit.ServerConnectionUtil;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.No_one_OperateState;
 import com.hninstrument.State.OperationState.One_man_OperateState;
@@ -33,38 +34,26 @@ import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.FileUtils;
 import com.hninstrument.Tools.SafeCheck;
 import com.jakewharton.rxbinding2.widget.RxTextView;
+import com.trello.rxlifecycle2.RxLifecycle;
+import com.trello.rxlifecycle2.android.ActivityEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import cbdi.drv.card.CardInfo;
+
+
 import cbdi.drv.card.CardInfoRk123x;
-import cbdi.log.Lg;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -86,12 +75,9 @@ public class MainActivity extends FunctionActivity {
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-
     Disposable disposableTips;
 
     CardInfoRk123x cardInfo;
-
-    Disposable disposableTime;
 
     @BindView(R.id.tv_time)
     TextView tv_time;
@@ -111,6 +97,10 @@ public class MainActivity extends FunctionActivity {
 
     Bitmap photo;
 
+    String Last_CardID;
+
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,7 +109,10 @@ public class MainActivity extends FunctionActivity {
         EventBus.getDefault().register(this);
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        disposableTime = Observable.interval(0, 1, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
+        Observable.interval(0, 1, TimeUnit.SECONDS)
+                .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Long>() {
             @Override
             public void accept(@NonNull Long aLong) throws Exception {
                 tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
@@ -166,7 +159,7 @@ public class MainActivity extends FunctionActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopService(intent);
-        disposableTime.dispose();
+
         disposableTips.dispose();
         EventBus.getDefault().unregister(this);
     }
@@ -188,15 +181,43 @@ public class MainActivity extends FunctionActivity {
         photo = bitmapChange(bmp, 0.5f, 0.5f);
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        new Thread()
+        ServerConnectionUtil.post("http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=persionRecord&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890"),
+                upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        pp.setDisplay(surfaceView.getHolder());
+                        idp.readCard();
+                        if(response!= null){
+                            if(response.equals("true")){
+                                operation.doNext()  ;
+                                if ((getState(One_man_OperateState.class))) {
+                                    photo = bitmapChange(photo, 2f, 3f);
+                                    captured1.setImageBitmap(photo);
+                                    tips.setText(cardInfo.name() + "刷卡成功");
+                                } else if ((getState(Two_man_OperateState.class))) {
+                                    captured1.setImageBitmap(null);
+                                    EventBus.getDefault().post(new PassEvent());
+                                    tips.setText(cardInfo.name() + "刷卡成功，门禁已解锁");
+                                    operation.doNext();
+                                }
+                            }else{
+                                tips.setText("数据上传失败");
+                            }
+                        }else{
+                            tips.setText("无法连接服务器");
+                        }
+
+                    }
+                });
+     /*   new Thread()
         {
             @Override
             public void run()
             {
                 sendPost();
             }
-        }.start();
-/*        Map<String,Object> map = new HashMap<String,Object>();
+        }.start();*/
+   /*     Map<String,Object> map = new HashMap<String,Object>();
         map.put("dataType","persionRecord");
         map.put("daid","1234567890");
         map.put("pass",new SafeCheck().getPass("1234567890"));
@@ -232,19 +253,8 @@ public class MainActivity extends FunctionActivity {
                 }
 
             }
-        });*/
-        operation.doNext()  ;
-        if ((getState(One_man_OperateState.class))) {
-            bmp = bitmapChange(bmp, 1f, 1.5f);
-            captured1.setImageBitmap(bmp);
-            tips.setText(cardInfo.name() + "刷卡成功");
-        } else if ((getState(Two_man_OperateState.class))) {
-            captured1.setImageBitmap(null);
-            EventBus.getDefault().post(new PassEvent());
-            tips.setText(cardInfo.name() + "刷卡成功，门禁已解锁");
-            operation.doNext();
-        }
-        pp.setDisplay(surfaceView.getHolder());
+        });
+        */
         //Verify(new CompareRequestBean(FileUtils.bitmapToBase64(headphoto), FileUtils.bitmapToBase64(bmp)));
     }
 
@@ -254,14 +264,12 @@ public class MainActivity extends FunctionActivity {
         headphoto = bmp;
     }
 
-
-    String Last_CardID;
-
     @Override
     public void onsetCardInfo(CardInfoRk123x cardInfo) {
         if (getState(No_one_OperateState.class)) {
             Last_CardID = cardInfo.cardId();
             Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                    .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<Long>() {
                         @Override
@@ -296,6 +304,7 @@ public class MainActivity extends FunctionActivity {
         pp.capture();
         this.cardInfo = cardInfo;
         tips.setText(cardInfo.name() + "刷卡中");
+        idp.stopReadCard();
     }
 
 
@@ -364,58 +373,9 @@ public class MainActivity extends FunctionActivity {
         matrix.postScale(width, height);
         return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
     }
-    public String sendPost()
-    {
 
-        int TIME_OUT = 10*1000;   //超时时间
-        String CHARSET = "utf-8";
-        BufferedReader in = null;
-        String result = null;
-        String  BOUNDARY =  UUID.randomUUID().toString();  //边界标识   随机生成
-        String PREFIX = "--" , LINE_END = "\r\n";
-        String CONTENT_TYPE = "multipart/form-data";
-        String RequestURL =  "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=persionRecord&daid=1234567890&pass="+new SafeCheck().getPass("1234567890");
-        try
-        {
-            int bufferSize = 2048;
-            URL url = new URL(RequestURL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(TIME_OUT);
-            conn.setConnectTimeout(TIME_OUT);
-            conn.setDoInput(true);  //允许输入流
-            conn.setDoOutput(true); //允许输出流
-            conn.setUseCaches(false);  //不允许使用缓存
-            conn.setRequestMethod("POST");  //请求方式
-            conn.setRequestProperty("Charset", CHARSET);  //设置编码
-            conn.setRequestProperty("connection", "keep-alive");
-            conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
-            DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
-            ByteArrayInputStream bin = new ByteArrayInputStream(upPersonRecordData.toPersonRecordData(cardInfo.cardId(),photo,cardInfo.name()).toByteArray());
-            byte[] buffer = new byte[bufferSize];
-            int length = -1;
-            while((length = bin.read(buffer)) != -1)
-            {
-                ds.write(buffer, 0, length);
-            }
 
-            in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null)
-            {
-                result =  line;
-            }
-        }
-        catch (Exception e)
-        {
 
-            e.printStackTrace();
-        }
-        finally
-        {
 
-        }
-        return result;
-    }
 
 }
