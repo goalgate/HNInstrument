@@ -43,6 +43,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayOutputStream;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -98,8 +99,6 @@ public class MainActivity extends FunctionActivity {
     Bitmap photo;
 
     String Last_CardID;
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -209,6 +208,14 @@ public class MainActivity extends FunctionActivity {
 
                     }
                 });
+        if(outputStream!=null){
+            try {
+                outputStream.flush();
+                outputStream.close();
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+        }
      /*   new Thread()
         {
             @Override

@@ -222,10 +222,7 @@ public class UpPersonRecordData {
                         bx[4] = (byte) (iy % 256);
                         bx[5] = (byte) ((iy / 256) % 256);
                         bx[6] = (byte) ((iy / 65536) % 256);
-
                     }
-
-
                     ms.write(bx, 0, 8);
                     if (msx != null) {
                         ms.write(msx.toByteArray(), 0, ix);
@@ -233,7 +230,6 @@ public class UpPersonRecordData {
                     if (pic_ != null) {
                         ms.write(pic_, 0, iy);
                     }
-
                     img = null;
 
                 }
@@ -241,6 +237,7 @@ public class UpPersonRecordData {
                 return ms;
             } catch (IOException e) {
                 try {
+
                     ms.close();
                     ms = null;
                 } catch (Exception e2) {
@@ -248,6 +245,7 @@ public class UpPersonRecordData {
                 }
             }finally {
                 try {
+                    msx.close();
                     ms.close();
                     ms = null;
                 } catch (Exception e2) {
