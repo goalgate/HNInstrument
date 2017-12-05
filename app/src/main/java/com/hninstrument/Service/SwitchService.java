@@ -157,6 +157,7 @@ public class SwitchService extends Service implements ISwitchView {
             AlarmCease();
         }*/
         lock.doNext();
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -31,13 +31,23 @@
             android:textSize="25sp" />
 
         <ImageView
-            android:id="@+id/iv_network"
+            android:id="@+id/iv_lock"
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_centerVertical="true"
             android:layout_marginRight="16dp"
             android:layout_toLeftOf="@id/tv_time"
+            android:src="@drawable/ic_lockup" />
+
+        <ImageView
+            android:id="@+id/iv_network"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="16dp"
+            android:layout_toLeftOf="@id/iv_lock"
             android:src="@drawable/non_wifi" />
+
 
     </RelativeLayout>
 
@@ -47,8 +57,8 @@
         android:layout_marginBottom="70dp"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
-        android:orientation="horizontal"
-        android:layout_marginTop="80dp">
+        android:layout_marginTop="80dp"
+        android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,10 +69,10 @@
                 android:id="@+id/img_captured1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginTop="10dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -76,8 +86,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginBottom="10dp"
-                android:layout_marginRight="10dp"
                 android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_weight="0.02"></SurfaceView>
         </LinearLayout>
@@ -89,9 +99,9 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/information_bg"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:background="@drawable/information_bg">
 
         <TextView
             android:id="@+id/tv_info"
@@ -99,10 +109,10 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="等待用户操作"
-            android:typeface="monospace"
-
             android:textColor="@color/primary_light"
-            android:textSize="25sp"/>
+
+            android:textSize="25sp"
+            android:typeface="monospace" />
 
     </RelativeLayout>
 </RelativeLayout>
