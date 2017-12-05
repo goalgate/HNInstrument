@@ -2,20 +2,16 @@ package com.hninstrument.Retrofit;
 
 
 
+import com.hninstrument.Retrofit.InterfaceApi.CommonApi;
 import com.hninstrument.Retrofit.InterfaceApi.FacetofaceApi;
-import com.hninstrument.Retrofit.InterfaceApi.PersonRecordApi;
-
-
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.strategy.Strategy;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
-
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -24,11 +20,6 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 
-
-/**
- * Retrofit变量初始化
- * Created by SmileXie on 16/7/16.
- */
 public class RetrofitGenerator {
 
     private static final String webservicrUri = "http://113.140.1.133:10011";
@@ -39,7 +30,7 @@ public class RetrofitGenerator {
 
     private static FacetofaceApi facetofaceApi;
 
-    private static PersonRecordApi personRecordApi;
+    private static CommonApi commonApi;
     private static Strategy strategy = new AnnotationStrategy();
     private static Serializer serializer = new Persister(strategy);
 
@@ -101,11 +92,11 @@ public class RetrofitGenerator {
         return facetofaceApi;
     }
 
-    public static PersonRecordApi getpersonRecordApi() {
-        if (personRecordApi == null) {
-            personRecordApi = createService(PersonRecordApi.class);
+    public static CommonApi getCommonApi() {
+        if (commonApi == null) {
+            commonApi = createService(CommonApi.class);
         }
-        return personRecordApi;
+        return commonApi;
     }
 
 

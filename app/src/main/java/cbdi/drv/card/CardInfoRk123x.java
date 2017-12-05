@@ -66,7 +66,16 @@ public class CardInfoRk123x extends SerialPortCom {
     private String devType="rk3668";  //rk312x
 
 
+    String faceRecognition;
 
+    public void setFaceRecognition(String faceRecognition) {
+        this.faceRecognition = faceRecognition;
+    }
+
+    public String getFaceRecognition() {
+
+        return faceRecognition;
+    }
 
 
     //检测是否有设备

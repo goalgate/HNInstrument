@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import com.hninstrument.Tools.SafeCheck;
 import com.squareup.leakcanary.LeakCanary;
 
 import org.greenrobot.greendao.database.Database;
@@ -35,9 +36,14 @@ public class AppInit extends Application {
 
     private static final String PREFS_NAME = "UserInfo";
 
+
+
+
     public static AppInit getInstance() {
         return instance;
     }
+
+
 
     public static Context getContext() {
         return getInstance().getApplicationContext();
@@ -47,7 +53,7 @@ public class AppInit extends Application {
 
     SPUtils data;
 
-/*    private DaoSession daoSession;*/
+
 
     @Override
     public void onCreate() {

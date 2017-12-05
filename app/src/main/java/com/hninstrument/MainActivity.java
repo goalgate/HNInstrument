@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,10 +15,13 @@ import android.widget.TextView;
 
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
+import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
+import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
@@ -37,6 +41,7 @@ import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.RxLifecycle;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -53,6 +58,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
+import butterknife.OnClick;
 import cbdi.drv.card.CardInfoRk123x;
 
 import io.reactivex.Observable;
@@ -80,6 +86,10 @@ public class MainActivity extends FunctionActivity {
 
     CardInfoRk123x cardInfo;
 
+    CardInfoRk123x cardInfo1;
+
+    CardInfoRk123x cardInfo2;
+
     @BindView(R.id.tv_time)
     TextView tv_time;
 
@@ -89,7 +99,11 @@ public class MainActivity extends FunctionActivity {
     @BindView(R.id.tv_info)
     TextView tips;
 
+    @BindView(R.id.iv_network)
+    ImageView iv_network;
+
     Operation operation;
+
     Intent intent;
 
     ProgressDialog pd;
@@ -98,7 +112,13 @@ public class MainActivity extends FunctionActivity {
 
     Bitmap photo;
 
-    String Last_CardID;
+    String Msg_network;
+    private static String personRecordUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=persionRecord&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890");
+
+    private static String faceRecognitionUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=faceRecognition&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890");
+
+    private static String samePsonFaceRecognitionUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=samePsonFaceRecognition&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890");
+    private static String OpenDoorUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=openDoor&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -112,11 +132,11 @@ public class MainActivity extends FunctionActivity {
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(@NonNull Long aLong) throws Exception {
-                tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
-            }
-        });
+                    @Override
+                    public void accept(@NonNull Long aLong) throws Exception {
+                        tv_time.setText(formatter.format(new Date(System.currentTimeMillis())));
+                    }
+                });
 
         disposableTips = RxTextView.textChanges(tips)
                 .debounce(60, TimeUnit.SECONDS)
@@ -150,7 +170,6 @@ public class MainActivity extends FunctionActivity {
         super.onResume();
         operation.setState(new No_one_OperateState());
         tips.setText("等待用户操作");
-
     }
 
 
@@ -165,7 +184,12 @@ public class MainActivity extends FunctionActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetNetworkEvent(NetworkEvent event) {
-
+        if(event.getNetwork_state()){
+            iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.wifi));
+        }else{
+            iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.non_wifi));
+        }
+        Msg_network = event.getMsg();
     }
 
 
@@ -180,91 +204,87 @@ public class MainActivity extends FunctionActivity {
         photo = bitmapChange(bmp, 0.5f, 0.5f);
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        ServerConnectionUtil.post("http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=persionRecord&daid=1234567890&pass=" + new SafeCheck().getPass("1234567890"),
+        if(getState(No_one_OperateState.class)||getState(One_man_OperateState.class)){
+            upData();
+        }
+    }
+
+
+    private void upData() {
+        ServerConnectionUtil.post(faceRecognitionUri,
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
-                        pp.setDisplay(surfaceView.getHolder());
-                        idp.readCard();
-                        if(response!= null){
-                            if(response.equals("true")){
-                                operation.doNext()  ;
+                        if (response != null) {
+                            if (response.startsWith("true")) {
+                                operation.doNext();
                                 if ((getState(One_man_OperateState.class))) {
+                                    last_photo = photo;
+                                    cardInfo1.setFaceRecognition(response.substring(5, response.length()));
                                     photo = bitmapChange(photo, 2f, 3f);
                                     captured1.setImageBitmap(photo);
                                     tips.setText(cardInfo.name() + "刷卡成功");
+
                                 } else if ((getState(Two_man_OperateState.class))) {
+                                    cardInfo2.setFaceRecognition(response.substring(5, response.length()));
+                                    openDoorUpData();
                                     captured1.setImageBitmap(null);
                                     EventBus.getDefault().post(new PassEvent());
                                     tips.setText(cardInfo.name() + "刷卡成功，门禁已解锁");
-                                    operation.doNext();
+
                                 }
-                            }else{
+                            } else {
+                                tips.setText("数据上传失败");
+
+                            }
+                        } else {
+                            tips.setText("无法连接服务器");
+
+                        }
+                        pp.setDisplay(surfaceView.getHolder());
+                        idp.readCard();
+                    }
+                });
+        if (outputStream != null) {
+            try {
+                outputStream.flush();
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    Bitmap last_photo;
+
+    private void openDoorUpData() {
+        last_photo.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        upPersonRecordData.setPic(outputStream.toByteArray());
+        ServerConnectionUtil.post(samePsonFaceRecognitionUri,
+                upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response != null) {
+                            if (response.startsWith("true")) {
+                                ServerConnectionUtil.post(OpenDoorUri + "&faceRecognition1=" + cardInfo1.getFaceRecognition() + "faceRecognition2" + cardInfo2.getFaceRecognition() + "faceRecognition3" + response.substring(5, response.length()),
+                                        new UpOpenDoorData().toOpenDoorData((byte) 0x01, cardInfo1.cardId(), cardInfo1.name(), last_photo, cardInfo2.cardId(), cardInfo2.name(), photo).toByteArray(),
+                                        new ServerConnectionUtil.Callback() {
+                                            @Override
+                                            public void onResponse(String response) {
+                                                pp.setDisplay(surfaceView.getHolder());
+                                                idp.readCard();
+                                            }
+                                        });
+                            } else {
                                 tips.setText("数据上传失败");
                             }
-                        }else{
-                            tips.setText("无法连接服务器");
+                        } else {
+                            tips.setText("无法连接到服务器");
                         }
 
                     }
                 });
-        if(outputStream!=null){
-            try {
-                outputStream.flush();
-                outputStream.close();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }
-     /*   new Thread()
-        {
-            @Override
-            public void run()
-            {
-                sendPost();
-            }
-        }.start();*/
-   /*     Map<String,Object> map = new HashMap<String,Object>();
-        map.put("dataType","persionRecord");
-        map.put("daid","1234567890");
-        map.put("pass",new SafeCheck().getPass("1234567890"));
-        RequestBody requestFile= RequestBody.create(MediaType.parse("multipart/form-data"),upPersonRecordData.toPersonRecordData(cardInfo.cardId(),bmp,cardInfo.name()).toByteArray());
-        MultipartBody.Part body = MultipartBody.Part.create(requestFile);
-        RetrofitGenerator.getpersonRecordApi().personRecord(map,body)
-                .subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<ByteArrayOutputStream>() {
-            @Override
-            public void onSubscribe(@NonNull Disposable d) {
-
-            }
-
-            @Override
-            public void onNext(@NonNull ByteArrayOutputStream byteArrayOutputStream) {
-
-            }
-
-            @Override
-            public void onError(@NonNull Throwable e) {
-
-            }
-
-            @Override
-            public void onComplete() {
-
-                try {
-                    outputStream.flush();
-                    outputStream.close();
-
-                }catch (IOException e){
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        */
-        //Verify(new CompareRequestBean(FileUtils.bitmapToBase64(headphoto), FileUtils.bitmapToBase64(bmp)));
     }
-
 
     @Override
     public void onsetCardImg(Bitmap bmp) {
@@ -274,8 +294,9 @@ public class MainActivity extends FunctionActivity {
     @Override
     public void onsetCardInfo(CardInfoRk123x cardInfo) {
         if (getState(No_one_OperateState.class)) {
-            Last_CardID = cardInfo.cardId();
-            Observable.timer(60, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+            this.cardInfo1 = cardInfo;
+            tips.setText(cardInfo.name() + "刷卡中");
+            Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                     .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<Long>() {
@@ -288,7 +309,8 @@ public class MainActivity extends FunctionActivity {
                         public void onNext(Long aLong) {
                             operation.setState(new No_one_OperateState());
                             captured1.setImageBitmap(null);
-                            Last_CardID = null;
+                            cardInfo1 = null;
+                            cardInfo2 = null;
                             tips.setText("等待用户操作");
                         }
 
@@ -303,14 +325,18 @@ public class MainActivity extends FunctionActivity {
                         }
                     });
         } else if (getState(One_man_OperateState.class)) {
-            if (Last_CardID.equals(cardInfo.cardId())) {
+            this.cardInfo2 = cardInfo;
+            tips.setText(cardInfo.name() + "刷卡中");
+           /* if (cardInfo2.cardId().equals(cardInfo1.cardId())) {
                 tips.setText("请不要连续输入同一个管理员的信息");
                 return;
-            }
+            }*/
+        } else if(getState(Two_man_OperateState.class)){
+            EventBus.getDefault().post(new CloseDoorEvent());
+            tips.setText("已进入撤防状态");
         }
         pp.capture();
         this.cardInfo = cardInfo;
-        tips.setText(cardInfo.name() + "刷卡中");
         idp.stopReadCard();
     }
 
@@ -324,7 +350,6 @@ public class MainActivity extends FunctionActivity {
     }
 
     private void Verify(final CompareRequestBean requestBean) {
-
         RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), new Gson().toJson(requestBean));
         RetrofitGenerator.getFacetofaceApi().facetoface(body).subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<CompareResponseBean>() {
@@ -380,9 +405,6 @@ public class MainActivity extends FunctionActivity {
         matrix.postScale(width, height);
         return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
     }
-
-
-
 
 
 }

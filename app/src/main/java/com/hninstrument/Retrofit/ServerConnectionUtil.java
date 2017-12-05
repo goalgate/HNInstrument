@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class ServerConnectionUtil {
 
-    private static int TIME_OUT = 10 * 1000;   //超时时间
+    private static int TIME_OUT = 20 * 1000;   //超时时间
     private static String CHARSET = "utf-8";
     private static BufferedReader in = null;
     private static String result = null;
@@ -31,14 +31,12 @@ public class ServerConnectionUtil {
     static Handler handler = new Handler();
 
 
-
-
     public static void post(final String baseUrl, final byte[] bs, final Callback callback) {
 
         new Thread() {
             @Override
             public void run() {
-                final String response = sendPost(baseUrl,bs);
+                final String response = sendPost(baseUrl, bs);
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -72,27 +70,24 @@ public class ServerConnectionUtil {
             while ((length = bin.read(buffer)) != -1) {
                 ds.write(buffer, 0, length);
             }
-            if(conn.getResponseCode()!=-1){
-                in = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
-                    result = line;
-                }
-            }else{
-                result = "time out";
+            in = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                result = line;
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                if(ds!=null){
+                if (ds != null) {
                     ds.flush();
                     ds.close();
-                }if(bin!=null){
+                }
+                if (bin != null) {
                     bin.close();
                 }
-            }catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 

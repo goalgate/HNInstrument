@@ -2,7 +2,6 @@ package com.hninstrument.State.DoorState;
 
 
 
-import com.hninstrument.EventBus.OpenDoorEvent;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
@@ -21,14 +20,10 @@ public class State_Open extends DoorState {
         this.lock = lock;
     }
 
-
     @Override
     public void onHandle(Door door) {
         if (lock.getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
-            EventBus.getDefault().post(new OpenDoorEvent(false));
             lock.doNext();
-        } else if (lock.getLockState().getClass().getName().equals(State_Unlock.class.getName())) {
-            EventBus.getDefault().post(new OpenDoorEvent(true));
         }
     }
 }
