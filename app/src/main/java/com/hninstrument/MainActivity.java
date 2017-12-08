@@ -227,9 +227,6 @@ public class MainActivity extends FunctionActivity {
         tips.setText("等待用户操作");
     }
 
-
-
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -255,12 +252,10 @@ public class MainActivity extends FunctionActivity {
 
     }
 
-
     @Override
     public void onsetCardImg(Bitmap bmp) {
         headphoto = bmp;
     }
-
 
     Disposable checkChange;
 

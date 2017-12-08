@@ -10,6 +10,8 @@ import com.blankj.utilcode.util.Utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import com.hninstrument.Tools.DaoMaster;
+import com.hninstrument.Tools.DaoSession;
 import com.hninstrument.Tools.SafeCheck;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -35,18 +37,16 @@ import io.reactivex.schedulers.Schedulers;
 public class AppInit extends Application {
     protected static AppInit instance;
 
-
     public static AppInit getInstance() {
         return instance;
     }
 
-
+    private DaoSession daoSession;
 
     public static Context getContext() {
         return getInstance().getApplicationContext();
     }
 
-    SPUtils SP_Config;
 
     @Override
     public void onCreate() {
@@ -65,7 +65,10 @@ public class AppInit extends Application {
 
         Utils.init(getContext());
 
- /*   public DaoSession getDaoSession() {
+        initDatabase();
+    }
+
+    public DaoSession getDaoSession() {
         return daoSession;
     }
 
@@ -73,6 +76,6 @@ public class AppInit extends Application {
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "HN_unUploadPackage-db");
         Database db = helper.getWritableDb();
         daoSession = new DaoMaster(db).newSession();
-    }*/
     }
+
 }

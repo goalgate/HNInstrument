@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'org.greenrobot.greendao'
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -55,7 +55,6 @@ dependencies {
         exclude module: 'xpp3'
     }
     compile "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
-
     compile 'com.bigkoo:alertview:1.0.3'
     compile 'org.greenrobot:greendao:3.2.2'
     compile 'cn.finalteam:okhttpfinal:2.0.7'
