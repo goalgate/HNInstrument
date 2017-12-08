@@ -1,6 +1,7 @@
 package com.hninstrument.State.OperationState;
 
 
+import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 
 /**
  * Created by zbsz on 2017/9/26.

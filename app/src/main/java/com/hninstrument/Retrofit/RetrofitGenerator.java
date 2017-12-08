@@ -2,8 +2,11 @@ package com.hninstrument.Retrofit;
 
 
 
+import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Retrofit.InterfaceApi.CommonApi;
 import com.hninstrument.Retrofit.InterfaceApi.FacetofaceApi;
+import com.hninstrument.Retrofit.InterfaceApi.PersonInfoApi;
+
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.convert.AnnotationStrategy;
 import org.simpleframework.xml.core.Persister;
@@ -31,6 +34,8 @@ public class RetrofitGenerator {
     private static FacetofaceApi facetofaceApi;
 
     private static CommonApi commonApi;
+    private static PersonInfoApi personInfoApi;
+
     private static Strategy strategy = new AnnotationStrategy();
     private static Serializer serializer = new Persister(strategy);
 
@@ -100,4 +105,10 @@ public class RetrofitGenerator {
     }
 
 
+    public static PersonInfoApi getPersonInfoApi() {
+        if (personInfoApi == null) {
+            personInfoApi = createService(PersonInfoApi.class);
+        }
+        return personInfoApi;
+    }
 }

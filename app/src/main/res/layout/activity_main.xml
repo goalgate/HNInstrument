@@ -6,6 +6,15 @@
     android:background="@drawable/index_bg"
     tools:context=".MainActivity">
 
+    <android.gesture.GestureOverlayView
+        android:id="@+id/gestures_overlay"
+        android:layout_width="290dp"
+        android:layout_height="70dp"
+        android:layout_weight="1.0"
+        android:eventsInterceptionEnabled="true"
+        android:gestureStrokeType="multiple">
+    </android.gesture.GestureOverlayView>
+
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
