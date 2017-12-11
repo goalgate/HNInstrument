@@ -28,6 +28,7 @@ import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
+import com.hninstrument.Retrofit.RetrofitGenerator;
 import com.hninstrument.Retrofit.ServerConnectionUtil;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.No_one_OperateState;
@@ -47,7 +48,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -71,7 +75,9 @@ import okhttp3.RequestBody;
 
 public class MainActivity extends FunctionActivity {
 
-    String devid = SPUtils.getInstance("config").getString("devid");
+    private static final String Server_URL = "http://((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?):\\d{4}/";
+
+    private SPUtils config =  SPUtils.getInstance("config");
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -80,6 +86,8 @@ public class MainActivity extends FunctionActivity {
     Disposable disposableTips;
 
     CardInfoRk123x cardInfo;
+
+    ServerConnectionUtil connectionUtil = new ServerConnectionUtil();
 
     PersonBean person1 = new PersonBean();
 
@@ -102,7 +110,7 @@ public class MainActivity extends FunctionActivity {
 
     @OnClick(R.id.iv_network)
     void network() {
-        NetworkUtils.openWirelessSettings();
+        inputServerView.show();
     }
 
     @BindView(R.id.gestures_overlay)
@@ -128,17 +136,19 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
-    private static String queryPersonUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=queryPersion";
+    private static String queryPersonUri = "daServer/da_gzmb_updata?dataType=queryPersion";
 
-    private static String personRecordUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=persionRecord";
+    private static String personRecordUri = "daServer/da_gzmb_updata?dataType=persionRecord";
 
-    private static String checkRecordUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=checkRecord";
+    private static String checkRecordUri = "daServer/da_gzmb_updata?dataType=checkRecord";
 
-    private static String faceRecognitionUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=faceRecognition";
+    private static String faceRecognitionUri = "daServer/da_gzmb_updata?dataType=faceRecognition";
 
-    private static String samePsonFaceRecognitionUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=samePsonFaceRecognition";
+    private static String samePsonFaceRecognitionUri = "daServer/da_gzmb_updata?dataType=samePsonFaceRecognition";
 
-    private static String OpenDoorUri = "http://192.168.12.165:7001/daServer/da_gzmb_updata?dataType=openDoor";
+    private static String OpenDoorUri = "daServer/da_gzmb_updata?dataType=openDoor";
+
+    String url;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -152,13 +162,43 @@ public class MainActivity extends FunctionActivity {
         inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
+                Pattern pattern = Pattern.compile(Server_URL);
 
+                url = etName.getText().toString().replaceAll(" ", "");
+
+                if (!(url.endsWith("/"))) {
+                    url = url + "/";
+                }
+                if (!(url.startsWith("http://"))) {
+                    url = "http://" + url;
+                }
+                if (pattern.matcher(url).matches()) {
+                    connectionUtil.https (url+"daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
+                            , new ServerConnectionUtil.Callback() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if(response!=null){
+                                        if(response.startsWith("true")){
+                                            config.put("ServerId",url);
+                                        }else{
+                                            ToastUtils.showLong("设备验证错误");
+                                        }
+
+                                    }else{
+                                        ToastUtils.showLong("服务器连接失败");
+                                    }
+
+                                }
+                            });
+                }
             }
         });
+
         ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
-        dev_name.setText(SPUtils.getInstance("config").getString("devid"));
+        dev_name.setText(config.getString("devid"));
         etName = (EditText) extView1.findViewById(R.id.server_input);
+        etName.setText(config.getString("ServerId"));
         inputServerView.addExtView(extView1);
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
@@ -201,7 +241,7 @@ public class MainActivity extends FunctionActivity {
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            inputServerView.show();
+                            NetworkUtils.openWirelessSettings();
                         }
                     }
                 }
@@ -314,7 +354,7 @@ public class MainActivity extends FunctionActivity {
             pp.capture();
             idp.stopReadCard();
         } else {
-            ServerConnectionUtil.https(queryPersonUri+"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid)+"&id=" + cardInfo.cardId(), new ServerConnectionUtil.Callback() {
+            connectionUtil.https(config.getString("ServerId")+queryPersonUri + "&daid=" + config.getString("devid")+ "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&id=" + cardInfo.cardId(), new ServerConnectionUtil.Callback() {
                 @Override
                 public void onResponse(String response) {
                     if (response != null) {
@@ -358,7 +398,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        ServerConnectionUtil.post(checkRecordUri+"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid)+"&checkType=2",
+        connectionUtil.post(config.getString("ServerId")+checkRecordUri + "&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&checkType=2",
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
                     @Override
@@ -380,10 +420,11 @@ public class MainActivity extends FunctionActivity {
                         }
                     }
                 });
-        try{
+        try {
             outputStream.flush();
             outputStream.close();
-        }catch (IOException e){
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -392,7 +433,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        ServerConnectionUtil.post(faceRecognitionUri+"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid),
+        connectionUtil.post(config.getString("ServerId")+faceRecognitionUri + "&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
@@ -427,10 +468,10 @@ public class MainActivity extends FunctionActivity {
                         }
                     }
                 });
-        try{
+        try {
             outputStream.flush();
             outputStream.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -439,7 +480,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        ServerConnectionUtil.post(personRecordUri+"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid),
+        connectionUtil.post(config.getString("ServerId")+personRecordUri + "&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
@@ -455,7 +496,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         person1.getPhoto().compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        ServerConnectionUtil.post(samePsonFaceRecognitionUri+"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid),
+        connectionUtil.post(config.getString("ServerId")+samePsonFaceRecognitionUri + "&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
@@ -463,7 +504,7 @@ public class MainActivity extends FunctionActivity {
                         idp.readCard();
                         if (response != null) {
                             if (response.startsWith("true")) {
-                                ServerConnectionUtil.post(OpenDoorUri +"&daid="+devid+"&pass=" + new SafeCheck().getPass(devid)+ "&faceRecognition1=" + person1.getFaceReconition() + "faceRecognition2" + person2.getFaceReconition() + "faceRecognition3" + response.substring(5, response.length()),
+                                connectionUtil.post(config.getString("ServerId")+OpenDoorUri + "&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&faceRecognition1=" + person1.getFaceReconition() + "faceRecognition2" + person2.getFaceReconition() + "faceRecognition3" + response.substring(5, response.length()),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
                                         new ServerConnectionUtil.Callback() {
                                             @Override
@@ -479,10 +520,10 @@ public class MainActivity extends FunctionActivity {
                         }
                     }
                 });
-        try{
+        try {
             outputStream.flush();
             outputStream.close();
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

@@ -23,13 +23,11 @@ public class SplashActivity extends Activity {
         SPUtils SP_Config = SPUtils.getInstance(PREFS_NAME);
 
         if (SP_Config.getBoolean("firstStart", true)) {
-            SP_Config.put("firstStart", false);
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".StartActivity");
             this.finish();
-        }else{
-            ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
+        }else {
+            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
             this.finish();
-
         }
     }
 }

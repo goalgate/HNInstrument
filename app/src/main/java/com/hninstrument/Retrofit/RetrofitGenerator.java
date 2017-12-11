@@ -2,6 +2,7 @@ package com.hninstrument.Retrofit;
 
 
 
+import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Retrofit.InterfaceApi.CommonApi;
 import com.hninstrument.Retrofit.InterfaceApi.FacetofaceApi;
@@ -65,6 +66,12 @@ public class RetrofitGenerator {
     }
 
     private static <S> S createService(Class<S> serviceClass) {
+        String url;
+        if(SPUtils.getInstance("config").getString("ServerId")!= null){
+            url = SPUtils.getInstance("config").getString("ServerId");
+        }else{
+            url = ServerUri;
+        }
         okHttpClient.interceptors().add(new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
@@ -84,7 +91,7 @@ public class RetrofitGenerator {
         Retrofit retrofit = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(ServerUri).client(client).build();
+                .baseUrl(url).client(client).build();
         return retrofit.create(serviceClass);
     }
 

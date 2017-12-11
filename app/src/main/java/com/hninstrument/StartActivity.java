@@ -43,6 +43,8 @@ public class StartActivity extends Activity {
     void next() {
 
         if (pattern.matcher(dev_suffix.getText().toString()).matches()) {
+            SPUtils.getInstance("config").put("firstStart", false);
+            SPUtils.getInstance("config").put("ServerId","http://192.168.12.168:7001/");
             SPUtils.getInstance(PREFS_NAME).put("devid", dev_prefix.getText().toString() + dev_suffix.getText().toString());
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
             StartActivity.this.finish();

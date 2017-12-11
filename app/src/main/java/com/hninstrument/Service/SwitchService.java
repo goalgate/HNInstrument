@@ -43,15 +43,13 @@ import io.reactivex.schedulers.Schedulers;
 
 public class SwitchService extends Service implements ISwitchView {
 
-    String devid = SPUtils.getInstance("config").getString("devid");
+    private SPUtils config = SPUtils.getInstance("config");
+
+    ServerConnectionUtil connectionUtil = new ServerConnectionUtil();
 
     SwitchPresenter sp = SwitchPresenter.getInstance();
 
     String Last_Value;
-
-    Disposable dis_rx_delay;
-
-    Disposable dis_unlock_noOpen;
 
     Lock lock;
 
@@ -74,50 +72,35 @@ public class SwitchService extends Service implements ISwitchView {
         sp.SwitchPresenterSetView(this);
         EventBus.getDefault().register(this);
         lock = new Lock(new State_Lockup(sp));
-        dis_testNet = Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        dis_testNet = Observable.interval(5, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            Map<String, Object> map = new HashMap<String, Object>();
-                            map.put("daid", devid);
-                            map.put("dataType", "test");
-                            map.put("pass", new SafeCheck().getPass(devid));
-                            RetrofitGenerator.getCommonApi().CommonRequest(map).observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Observer<String>() {
+                            connectionUtil.https(config.getString("ServerId") + "daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
+                                    , new ServerConnectionUtil.Callback() {
                                         @Override
-                                        public void onSubscribe(@NonNull Disposable d) {
-
-                                        }
-
-                                        @Override
-                                        public void onNext(String s) {
-                                            if (s.equals("true")) {
-                                                network_State = true;
-                                                EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
+                                        public void onResponse(String response) {
+                                            if (response != null) {
+                                                if (response.startsWith("true")) {
+                                                    if(!network_State){
+                                                        updata();
+                                                    }
+                                                    network_State = true;
+                                                    EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
+                                                } else {
+                                                    network_State = false;
+                                                    EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                                                }
                                             } else {
                                                 network_State = false;
-                                                EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                                                EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                             }
                                         }
-
-                                        @Override
-                                        public void onError(@NonNull Throwable e) {
-                                            network_State = false;
-                                            EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-
-                                        }
                                     });
-                        } else {
-                            network_State = false;
-                            EventBus.getDefault().post(new NetworkEvent(false, "请检查网络是否已连接"));
-
                         }
                     }
+
                 });
 
         dis_checkOnline = Observable.interval(1, 1, TimeUnit.HOURS)
@@ -127,9 +110,9 @@ public class SwitchService extends Service implements ISwitchView {
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_State) {
                             Map<String, Object> map = new HashMap<String, Object>();
-                            map.put("daid", devid);
+                            map.put("daid", config.getString("devid"));
                             map.put("dataType", "checkOnline");
-                            map.put("pass", new SafeCheck().getPass(devid));
+                            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
                             RetrofitGenerator.getCommonApi().CommonRequest(map)
                                     .subscribeOn(Schedulers.io()).subscribe(new Consumer<String>() {
                                 @Override
@@ -140,7 +123,11 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
 
-        ServerConnectionUtil.https("http://192.168.12.165:7001/daServer/da_gzmb_persionInfo?dataType=updatePersion&daid="+devid+"&pass=" + new SafeCheck().getPass(devid) + "&persionType=1", new ServerConnectionUtil.Callback() {
+
+    }
+
+    private void updata(){
+        connectionUtil.https(config.getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -150,15 +137,16 @@ public class SwitchService extends Service implements ISwitchView {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "1");
                         }
-                        ServerConnectionUtil.https("http://192.168.12.165:7001/daServer/da_gzmb_persionInfo?dataType=updatePersion&daid="+devid+"&pass=" + new SafeCheck().getPass(devid) + "&persionType=2", new ServerConnectionUtil.Callback() {
+                        connectionUtil.https(SPUtils.getInstance("config").getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
+
                             @Override
                             public void onResponse(String response) {
                                 String[] idList = response.split("\\|");
-                                if (idList[0].length()==18) {
+                                if (idList[0].length() == 18) {
                                     for (String id : idList) {
                                         SPUtils.getInstance("personData").put(id, "2");
                                     }
-                                }else{
+                                } else {
                                     ToastUtils.showLong("巡检员更新错误或并无巡检员");
                                 }
                             }
@@ -192,12 +180,6 @@ public class SwitchService extends Service implements ISwitchView {
         super.onDestroy();
         sp.SwitchPresenterSetView(null);
 
-        if (dis_unlock_noOpen != null) {
-            dis_unlock_noOpen.dispose();
-        }
-        if (dis_rx_delay != null) {
-            dis_rx_delay.dispose();
-        }
         if (dis_testNet != null) {
             dis_testNet.dispose();
         }
@@ -221,8 +203,6 @@ public class SwitchService extends Service implements ISwitchView {
             if (value.startsWith("AAAAAA")) {
                 Last_Value = value;
                 if (value.equals("AAAAAA000000000000")) {
-                   /* door.setDoorState(new State_Open(lock));
-                    door.doNext();*/
                     lock.doNext();
                     alarmRecord();
                 }
@@ -233,113 +213,23 @@ public class SwitchService extends Service implements ISwitchView {
                 if (!value.equals(Last_Value)) {
                     Last_Value = value;
                     if (Last_Value.equals("AAAAAA000000000000")) {
-                        /*if (getDoorState(State_Close.class)) {
-                            *//*door.setDoorState(new State_Open(lock));
-                            door.doNext();*//*
-                            if (getLockState(State_Lockup.class)) {
-                                alarmRecord();
-                            }
-                        }*/
                         if (getLockState(State_Lockup.class)) {
                             lock.doNext();
                             alarmRecord();
                         }
-                        if (dis_unlock_noOpen != null) {
-                            dis_unlock_noOpen.dispose();
-                        }
-                        if (dis_rx_delay != null) {
-                            dis_rx_delay.dispose();
-                        }
-                    } /*else if (Last_Value.equals("AAAAAA000001000000")) {
-                        final String closeDoorTime = TimeUtils.getNowString();
-                        Observable.timer(20, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                                .subscribe(new Observer<Long>() {
-                                    @Override
-                                    public void onSubscribe(Disposable d) {
-                                        dis_rx_delay = d;
-                                    }
-
-                                    @Override
-                                    public void onNext(Long aLong) {
-                                        lock.setLockState(new State_Lockup(sp));
-                                 *//*       door.setDoorState(new State_Close(lock));*//*
-                                        CloseDoorRecord(closeDoorTime);
-                                        sp.buzz(SwitchImpl.Hex.H2);
-
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable e) {
-
-                                    }
-
-                                    @Override
-                                    public void onComplete() {
-
-                                    }
-                                });
-                    }*/
+                    }
                 }
-
-                /*if (getLockState(State_Unlock.class) && value.equals("AAAAAA000001000000")) {
-                    Observable.timer(120, TimeUnit.SECONDS)
-                            .subscribeOn(Schedulers.newThread())
-                            .subscribe(new Observer<Long>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
-                                    dis_unlock_noOpen = d;
-                                }
-
-                                @Override
-                                public void onNext(Long aLong) {
-                                    lock.setLockState(new State_Lockup(sp));
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onComplete() {
-                                }
-                            });
-                }*/
             }
         }
     }
 
 
     private void alarmRecord() {
-   /*     Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Long>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull Long aLong) {
-
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });*/
-
         if (network_State) {
             Map<String, Object> map = new HashMap<String, Object>();
-            map.put("daid", devid);
+            map.put("daid", config.getString("devid"));
             map.put("dataType", "alarm");
-            map.put("pass", new SafeCheck().getPass(devid));
+            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
             map.put("alarmType", "1");
             map.put("time", TimeUtils.getNowString());
             RetrofitGenerator.getCommonApi().CommonRequest(map)
@@ -359,9 +249,9 @@ public class SwitchService extends Service implements ISwitchView {
     private void CloseDoorRecord(String time) {
         if (network_State) {
             Map<String, Object> map = new HashMap<String, Object>();
-            map.put("daid", devid);
+            map.put("daid", config.getString("devid"));
             map.put("dataType", "closeDoor");
-            map.put("pass", new SafeCheck().getPass(devid));
+            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
             map.put("time", TimeUtils.getNowString());
             RetrofitGenerator.getCommonApi().CommonRequest(map)
                     .subscribeOn(Schedulers.io())
@@ -376,15 +266,6 @@ public class SwitchService extends Service implements ISwitchView {
 
         }
     }
-
-
-    /* private Boolean getDoorState(Class stateClass) {
-         if (door.getDoorState().getClass().getName().equals(stateClass.getName())) {
-             return true;
-         } else {
-             return false;
-         }
-     }*/
     private Boolean getLockState(Class stateClass) {
         if (lock.getLockState().getClass().getName().equals(stateClass.getName())) {
             return true;

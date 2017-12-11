@@ -31,7 +31,7 @@ public class ServerConnectionUtil {
     static Handler handler = new Handler();
 
 
-    public static void post(final String baseUrl, final byte[] bs, final Callback callback) {
+    public void post(final String baseUrl, final byte[] bs, final Callback callback) {
 
         new Thread() {
             @Override
@@ -47,7 +47,7 @@ public class ServerConnectionUtil {
         }.start();
     }
 
-    public static void https(final String baseUrl, final Callback callback) {
+    public void https(final String baseUrl, final Callback callback) {
         new Thread() {
             @Override
             public void run() {
@@ -62,7 +62,7 @@ public class ServerConnectionUtil {
         }.start();
     }
 
-    private static String sendHttps(String baseUrl) {
+    private String sendHttps(String baseUrl) {
 
         try {
             URL url = new URL(baseUrl);
@@ -76,19 +76,24 @@ public class ServerConnectionUtil {
             conn.setRequestProperty("Charset", CHARSET);  //设置编码
             conn.setRequestProperty("connection", "keep-alive");
             conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
-            in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()));
-            String line;
-            while ((line = in.readLine()) != null) {
-                result = line;
+            if (200 == conn.getResponseCode()){
+                in = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                String line;
+                while ((line = in.readLine()) != null) {
+                    result = line;
+                }
+            }else{
+                result= null;
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
         return result;
     }
 
-    private static String sendPost(String baseUrl, byte[] bs) {
+    private String sendPost(String baseUrl, byte[] bs) {
         DataOutputStream ds = null;
         ByteArrayInputStream bin = null;
         try {

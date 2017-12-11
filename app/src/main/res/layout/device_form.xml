@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_marginTop="5dp"
-        android:text="服务器设置"
+        android:text="设备ID号设置"
         android:textColor="@color/primary_light"
         android:textSize="10pt" />
 
