@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.NetworkUtils;
@@ -28,7 +27,6 @@ import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
-import com.hninstrument.Retrofit.RetrofitGenerator;
 import com.hninstrument.Retrofit.ServerConnectionUtil;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.No_one_OperateState;
@@ -38,28 +36,20 @@ import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.SafeCheck;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-
 import butterknife.OnClick;
 import cbdi.drv.card.CardInfoRk123x;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -69,9 +59,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 
 public class MainActivity extends FunctionActivity {
 
@@ -110,7 +97,13 @@ public class MainActivity extends FunctionActivity {
 
     @OnClick(R.id.iv_network)
     void network() {
-        inputServerView.show();
+        connectionUtil.https("http://192.168.12.169:7001/daServer/devRecord?method=devRecord&data=123", new ServerConnectionUtil.Callback() {
+            @Override
+            public void onResponse(String response) {
+
+            }
+        });
+        //inputServerView.show();
     }
 
     @BindView(R.id.gestures_overlay)
@@ -136,7 +129,7 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
-    private static String queryPersonUri = "daServer/da_gzmb_updata?dataType=queryPersion";
+    private static String queryPersonUri = "daServer/da_gzmb_persionInfo?dataType=queryPersion";
 
     private static String personRecordUri = "daServer/da_gzmb_updata?dataType=persionRecord";
 
@@ -187,7 +180,6 @@ public class MainActivity extends FunctionActivity {
                                     }else{
                                         ToastUtils.showLong("服务器连接失败");
                                     }
-
                                 }
                             });
                 }
@@ -300,10 +292,11 @@ public class MainActivity extends FunctionActivity {
     Disposable checkChange;
 
     @Override
-    public void onsetCardInfo(CardInfoRk123x cardInfo) {
+    public void onsetCardInfo(final CardInfoRk123x cardInfo) {
         this.cardInfo = cardInfo;
         if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
             if (getState(No_one_OperateState.class)) {
+
                 tips.setText(cardInfo.name() + "刷卡中");
                 person1.setCardId(cardInfo.cardId());
                 person1.setName(cardInfo.name());
@@ -359,9 +352,16 @@ public class MainActivity extends FunctionActivity {
                 public void onResponse(String response) {
                     if (response != null) {
                         if (response.startsWith("true")) {
-                            persontype = response.split("\\|")[1];
-                            pp.capture();
-                            idp.stopReadCard();
+                            if(response.split("\\|").length>1){
+                                persontype = response.split("\\|")[1];
+                                SPUtils.getInstance("personData").put(cardInfo.cardId(),persontype);
+                                if(persontype.equals("1")){
+                                    person1.setCardId(cardInfo.cardId());
+                                    person1.setName(cardInfo.name());
+                                }
+                                pp.capture();
+                                idp.stopReadCard();
+                            }
                         } else {
                             persontype = "0";
                             pp.capture();
@@ -373,7 +373,6 @@ public class MainActivity extends FunctionActivity {
                 }
             });
         }
-
     }
 
     @Override
@@ -527,6 +526,7 @@ public class MainActivity extends FunctionActivity {
             e.printStackTrace();
         }
     }
+
 
     private Boolean getState(Class stateClass) {
         if (operation.getState().getClass().getName().equals(stateClass.getName())) {

@@ -30,7 +30,6 @@ public class ServerConnectionUtil {
     private static int bufferSize = 2048;
     static Handler handler = new Handler();
 
-
     public void post(final String baseUrl, final byte[] bs, final Callback callback) {
 
         new Thread() {
