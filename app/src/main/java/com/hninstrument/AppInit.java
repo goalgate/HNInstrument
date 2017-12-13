@@ -12,7 +12,6 @@ import com.google.gson.reflect.TypeToken;
 
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
-import com.hninstrument.Tools.SafeCheck;
 import com.squareup.leakcanary.LeakCanary;
 
 import org.greenrobot.greendao.database.Database;
@@ -66,6 +65,7 @@ public class AppInit extends Application {
         Utils.init(getContext());
 
         initDatabase();
+
     }
 
     public DaoSession getDaoSession() {

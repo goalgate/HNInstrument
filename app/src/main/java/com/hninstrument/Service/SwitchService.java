@@ -77,7 +77,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            connectionUtil.https(config.getString("ServerId") + "daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
+                            connectionUtil.post(config.getString("ServerId") + "daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
                                     , new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
@@ -114,9 +114,25 @@ public class SwitchService extends Service implements ISwitchView {
                             map.put("dataType", "checkOnline");
                             map.put("pass", new SafeCheck().getPass(config.getString("devid")));
                             RetrofitGenerator.getCommonApi().CommonRequest(map)
-                                    .subscribeOn(Schedulers.io()).subscribe(new Consumer<String>() {
+                                    .subscribeOn(Schedulers.io()).subscribe(new Observer<String>() {
                                 @Override
-                                public void accept(String s) throws Exception {
+                                public void onSubscribe(@NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@NonNull String s) {
+
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
                                 }
                             });
                         }
@@ -127,7 +143,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void updata(){
-        connectionUtil.https(config.getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
+        connectionUtil.post(config.getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -137,7 +153,7 @@ public class SwitchService extends Service implements ISwitchView {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "1");
                         }
-                        connectionUtil.https(SPUtils.getInstance("config").getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
+                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
 
                             @Override
                             public void onResponse(String response) {
@@ -235,9 +251,24 @@ public class SwitchService extends Service implements ISwitchView {
             RetrofitGenerator.getCommonApi().CommonRequest(map)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<String>() {
+                    .subscribe(new Observer<String>() {
                         @Override
-                        public void accept(String s) throws Exception {
+                        public void onSubscribe(@NonNull Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onNext(@NonNull String s) {
+
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
 
                         }
                     });
@@ -256,9 +287,24 @@ public class SwitchService extends Service implements ISwitchView {
             RetrofitGenerator.getCommonApi().CommonRequest(map)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<String>() {
+                    .subscribe(new Observer<String>() {
                         @Override
-                        public void accept(String s) throws Exception {
+                        public void onSubscribe(@NonNull Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onNext(@NonNull String s) {
+
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
 
                         }
                     });
