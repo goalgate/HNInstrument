@@ -14,24 +14,19 @@ import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
-import com.hninstrument.Retrofit.RetrofitGenerator;
-import com.hninstrument.Retrofit.ServerConnectionUtil;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
 import com.hninstrument.Tools.SafeCheck;
+import com.hninstrument.Tools.ServerConnectionUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -77,7 +72,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            connectionUtil.post(config.getString("ServerId") + "daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
+                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
                                     , new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
@@ -109,7 +104,15 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_State) {
-                            Map<String, Object> map = new HashMap<String, Object>();
+                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=checkOnline&pass=" + new SafeCheck().getPass(config.getString("devid")),
+                                    new ServerConnectionUtil.Callback() {
+                                        @Override
+                                        public void onResponse(String response) {
+
+                                        }
+                                    });
+
+         /*                   Map<String, Object> map = new HashMap<String, Object>();
                             map.put("daid", config.getString("devid"));
                             map.put("dataType", "checkOnline");
                             map.put("pass", new SafeCheck().getPass(config.getString("devid")));
@@ -134,7 +137,7 @@ public class SwitchService extends Service implements ISwitchView {
                                 public void onComplete() {
 
                                 }
-                            });
+                            });*/
                         }
                     }
                 });
@@ -143,7 +146,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void updata(){
-        connectionUtil.post(config.getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
+        connectionUtil.post(config.getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -153,7 +156,7 @@ public class SwitchService extends Service implements ISwitchView {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "1");
                         }
-                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "daServer/da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
+                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
 
                             @Override
                             public void onResponse(String response) {
@@ -203,7 +206,7 @@ public class SwitchService extends Service implements ISwitchView {
             dis_checkOnline.dispose();
         }
         EventBus.getDefault().unregister(this);
-/*        Intent localIntent = new Intent();
+   /*     Intent localIntent = new Intent();
         localIntent.setClass(this, SwitchService.class); //销毁时重新启动Service
         this.startService(localIntent);*/
     }
@@ -216,6 +219,18 @@ public class SwitchService extends Service implements ISwitchView {
     @Override
     public void onSwitchingText(String value) {
         if ((Last_Value == null || Last_Value.equals(""))) {
+            Last_Value = value;
+        }
+        if (!value.equals(Last_Value)) {
+            Last_Value = value;
+            if (Last_Value.equals("AAAAAA000000000000")) {
+                if (getLockState(State_Lockup.class)) {
+                    lock.doNext();
+                    alarmRecord();
+                }
+            }
+        }
+   /*     if ((Last_Value == null || Last_Value.equals(""))) {
             if (value.startsWith("AAAAAA")) {
                 Last_Value = value;
                 if (value.equals("AAAAAA000000000000")) {
@@ -236,13 +251,21 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 }
             }
-        }
+        }*/
     }
 
 
     private void alarmRecord() {
         if (network_State) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&time=" + TimeUtils.getNowString(),
+                    new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+
+                        }
+                    });
+        }
+            /*Map<String, Object> map = new HashMap<String, Object>();
             map.put("daid", config.getString("devid"));
             map.put("dataType", "alarm");
             map.put("pass", new SafeCheck().getPass(config.getString("devid")));
@@ -271,15 +294,22 @@ public class SwitchService extends Service implements ISwitchView {
                         public void onComplete() {
 
                         }
-                    });
-        } else {
+                    });*/
+        else {
 
         }
     }
 
     private void CloseDoorRecord(String time) {
         if (network_State) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&time=" + TimeUtils.getNowString(),
+                    new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+
+                        }
+                    });
+          /*  Map<String, Object> map = new HashMap<String, Object>();
             map.put("daid", config.getString("devid"));
             map.put("dataType", "closeDoor");
             map.put("pass", new SafeCheck().getPass(config.getString("devid")));
@@ -307,7 +337,7 @@ public class SwitchService extends Service implements ISwitchView {
                         public void onComplete() {
 
                         }
-                    });
+                    });*/
         } else {
 
         }

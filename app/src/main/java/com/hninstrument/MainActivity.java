@@ -1,10 +1,5 @@
 package com.hninstrument;
 
-import android.app.AlertDialog;
-import android.app.DownloadManager;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
@@ -14,16 +9,13 @@ import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bigkoo.alertview.AlertView;
@@ -39,13 +31,13 @@ import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
-import com.hninstrument.Retrofit.ServerConnectionUtil;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.No_one_OperateState;
 import com.hninstrument.State.OperationState.One_man_OperateState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.SafeCheck;
+import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
@@ -114,6 +106,7 @@ public class MainActivity extends FunctionActivity {
 
     @OnClick(R.id.iv_network)
     void network() {
+        etName.setText(config.getString("ServerId"));
         inputServerView.show();
     }
 
@@ -140,17 +133,17 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
-    private static String queryPersonUri = "daServer/da_gzmb_persionInfo?dataType=queryPersion";
+    private static String queryPersonUri = "da_gzmb_persionInfo?dataType=queryPersion";
 
-    private static String personRecordUri = "daServer/da_gzmb_updata?dataType=persionRecord";
+    private static String personRecordUri = "da_gzmb_updata?dataType=persionRecord";
 
-    private static String checkRecordUri = "daServer/da_gzmb_updata?dataType=checkRecord";
+    private static String checkRecordUri = "da_gzmb_updata?dataType=checkRecord";
 
-    private static String faceRecognitionUri = "daServer/da_gzmb_updata?dataType=faceRecognition";
+    private static String faceRecognitionUri = "da_gzmb_updata?dataType=faceRecognition";
 
-    private static String samePsonFaceRecognitionUri = "daServer/da_gzmb_updata?dataType=samePsonFaceRecognition";
+    private static String samePsonFaceRecognitionUri = "da_gzmb_updata?dataType=samePsonFaceRecognition";
 
-    private static String OpenDoorUri = "daServer/da_gzmb_updata?dataType=openDoor";
+    private static String OpenDoorUri = "da_gzmb_updata?dataType=openDoor";
 
     String url;
 
@@ -177,7 +170,7 @@ public class MainActivity extends FunctionActivity {
                     url = "http://" + url;
                 }
                 if (pattern.matcher(url).matches()) {
-                    connectionUtil.post(url + "daServer/da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
+                    connectionUtil.post(url + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
                             , new ServerConnectionUtil.Callback() {
                                 @Override
                                 public void onResponse(String response) {
@@ -201,7 +194,7 @@ public class MainActivity extends FunctionActivity {
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
         dev_name.setText(config.getString("devid"));
         etName = (EditText) extView1.findViewById(R.id.server_input);
-        etName.setText(config.getString("ServerId"));
+
         inputServerView.addExtView(extView1);
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
@@ -259,7 +252,7 @@ public class MainActivity extends FunctionActivity {
 
 
     private void autoUpdate() {
-        connectionUtil.download(config.getString("ServerId") + "daServer/updateApp.do?ver=" + AppUtils.getAppVersionCode(), new ServerConnectionUtil.Callback() {
+        connectionUtil.download(config.getString("ServerId") + "updateApp?ver=" + AppUtils.getAppVersionCode(), new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if(response!=null){
@@ -287,7 +280,7 @@ public class MainActivity extends FunctionActivity {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().post(new CloseDoorEvent());
-        stopService(intent);
+        //stopService(intent);
         disposableTips.dispose();
         EventBus.getDefault().unregister(this);
     }

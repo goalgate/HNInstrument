@@ -1,16 +1,10 @@
-package com.hninstrument.Retrofit;
+package com.hninstrument.Tools;
 
-import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-
-import com.hninstrument.Bean.DataFlow.PersonBean;
-import com.hninstrument.Tools.SafeCheck;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.interfaces.DSAKey;
 import java.util.UUID;
 
 /**
@@ -120,8 +113,11 @@ public class ServerConnectionUtil {
             e.printStackTrace();
         }finally {
             try{
-                os.flush();
-                os.close();
+                if(os!=null){
+                    os.flush();
+                    os.close();
+                }
+
             }catch (IOException e){
                 e.printStackTrace();
             }

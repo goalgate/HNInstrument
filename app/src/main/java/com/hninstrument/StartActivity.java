@@ -47,7 +47,7 @@ public class StartActivity extends Activity {
             config.put("devid", dev_prefix.getText().toString() + dev_suffix.getText().toString());
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
             StartActivity.this.finish();
-            ToastUtils.showLong("设备id设置成功");
+            ToastUtils.showLong("设备ID设置成功");
         } else {
             ToastUtils.showLong("设备ID输入错误，请重试");
         }
