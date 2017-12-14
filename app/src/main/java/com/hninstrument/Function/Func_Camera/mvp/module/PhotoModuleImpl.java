@@ -200,8 +200,6 @@ public class PhotoModuleImpl implements IPhotoModule {
     /*    private boolean hasDetected = false;
         private int realFaceNum = 0;*/
     IOnSetListener callback;
-    private static final String PREFS_NAME = "UserInfo";
-
 
     @Override
     public void setDisplay(SurfaceHolder sHolder) {
@@ -210,13 +208,7 @@ public class PhotoModuleImpl implements IPhotoModule {
             camera.setPreviewDisplay(sHolder);
             camera.startPreview();
         } catch (IOException e) {
-            safeCameraOpen(0);
-            try {
-                camera.setPreviewDisplay(sHolder);
-                camera.startPreview();
-            } catch (IOException ex) {
-                Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
-            }
+            e.printStackTrace();
         }
 
     }

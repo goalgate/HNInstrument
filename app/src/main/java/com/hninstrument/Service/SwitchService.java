@@ -17,7 +17,6 @@ import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
-import com.hninstrument.Tools.SafeCheck;
 import com.hninstrument.Tools.ServerConnectionUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -72,8 +71,8 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test&pass=" + new SafeCheck().getPass(config.getString("devid"))
-                                    , new ServerConnectionUtil.Callback() {
+                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
+                                    ,config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
                                             if (response != null) {
@@ -104,8 +103,8 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_State) {
-                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=checkOnline&pass=" + new SafeCheck().getPass(config.getString("devid")),
-                                    new ServerConnectionUtil.Callback() {
+                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=checkOnline"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
+                                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
 
@@ -146,7 +145,9 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void updata(){
-        connectionUtil.post(config.getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=1", new ServerConnectionUtil.Callback() {
+        connectionUtil.post(config.getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=1",
+                config.getString("ServerId"),
+                new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -156,7 +157,8 @@ public class SwitchService extends Service implements ISwitchView {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "1");
                         }
-                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") + "&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&persionType=2", new ServerConnectionUtil.Callback() {
+                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=2",
+                                config.getString("ServerId"),new ServerConnectionUtil.Callback() {
 
                             @Override
                             public void onResponse(String response) {
@@ -257,8 +259,8 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void alarmRecord() {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&time=" + TimeUtils.getNowString(),
-                    new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&time=" + TimeUtils.getNowString(),
+                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
@@ -302,8 +304,8 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void CloseDoorRecord(String time) {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor&pass=" + new SafeCheck().getPass(config.getString("devid")) + "&time=" + TimeUtils.getNowString(),
-                    new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&time=" + TimeUtils.getNowString(),
+                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
