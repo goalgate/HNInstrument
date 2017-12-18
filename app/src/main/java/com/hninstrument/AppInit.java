@@ -5,7 +5,7 @@ import android.content.Context;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
-import com.squareup.leakcanary.LeakCanary;
+
 import org.greenrobot.greendao.database.Database;
 import cbdi.log.Lg;
 
@@ -33,11 +33,11 @@ public class AppInit extends Application {
 
         Lg.setIsSave(true);
 
-        if (LeakCanary.isInAnalyzerProcess(this)) {
+ /*       if (LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
 
-        LeakCanary.install(this);
+        LeakCanary.install(this);*/
 
         instance = this;
 

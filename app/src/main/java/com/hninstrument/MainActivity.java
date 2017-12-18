@@ -38,7 +38,7 @@ import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-import com.squareup.haha.perflib.Main;
+
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -129,6 +129,8 @@ public class MainActivity extends FunctionActivity {
 
     private TextView dev_name;
 
+    private TextView ip_name;
+
     private EditText etName;
 
     private AlertView inputServerView;
@@ -156,20 +158,19 @@ public class MainActivity extends FunctionActivity {
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
-        inputServerView = new AlertView("服务器设置", null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+        inputServerView = new AlertView("服务器设置,版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
-                Pattern pattern = Pattern.compile(Server_URL);
-
-                url = etName.getText().toString().replaceAll(" ", "");
-
-                if (!(url.endsWith("/"))) {
-                    url = url + "/";
-                }
-                if (!(url.startsWith("http://"))) {
-                    url = "http://" + url;
-                }
-                if (pattern.matcher(url).matches()) {
+                if (position == 0) {
+                    url = etName.getText().toString().replaceAll(" ", "");
+       /*             Pattern pattern = Pattern.compile(Server_URL);
+                    if (!(url.endsWith("/"))) {
+                        url = url + "/";
+                    }
+                    if (!(url.startsWith("http://"))) {
+                        url = "http://" + url;
+                    }
+                    if (pattern.matcher(url).matches()) {*/
                     connectionUtil.post(url + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test", url
                             , new ServerConnectionUtil.Callback() {
                                 @Override
@@ -186,15 +187,18 @@ public class MainActivity extends FunctionActivity {
                                     }
                                 }
                             });
+                    /*}*/
                 }
+
             }
         });
 
         ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
+        ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
         dev_name.setText(config.getString("devid"));
+        ip_name.setText(NetworkUtils.getIPAddress(true));
         etName = (EditText) extView1.findViewById(R.id.server_input);
-
         inputServerView.addExtView(extView1);
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
@@ -211,7 +215,8 @@ public class MainActivity extends FunctionActivity {
                 .debounce(60, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
-                    public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws Exception {
+                    public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws
+                            Exception {
                         return Observable.just("等待用户操作");
                     }
                 })
@@ -226,7 +231,9 @@ public class MainActivity extends FunctionActivity {
 
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
-        gestures.addOnGesturePerformedListener(new GestureOverlayView.OnGesturePerformedListener() {
+        gestures.addOnGesturePerformedListener(new GestureOverlayView.OnGesturePerformedListener()
+
+        {
             @Override
             public void onGesturePerformed(GestureOverlayView overlay,
                                            Gesture gesture) {
@@ -243,10 +250,13 @@ public class MainActivity extends FunctionActivity {
                 }
             }
         });
-        if (mGestureLib == null) {
+        if (mGestureLib == null)
+
+        {
             mGestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
             mGestureLib.load();
         }
+
         autoUpdate();
     }
 

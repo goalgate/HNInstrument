@@ -342,6 +342,7 @@ public class PhotoModuleImpl implements IPhotoModule {
         try {
             releaseCameraAndPreview();
             camera = Camera.open(id);
+
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
             e.printStackTrace();
