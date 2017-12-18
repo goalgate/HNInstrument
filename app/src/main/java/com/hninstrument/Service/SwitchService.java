@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.EventBus.CloseDoorEvent;
+import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
@@ -173,6 +174,14 @@ public class SwitchService extends Service implements ISwitchView {
         CloseDoorRecord(TimeUtils.getNowString());
         sp.buzz(SwitchImpl.Hex.H2);
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetExitEvent(ExitEvent event) {
+        lock.setLockState(new State_Lockup(sp));
+        sp.buzz(SwitchImpl.Hex.HA);
+    }
+
+
 
     public void onDestroy() {
         super.onDestroy();

@@ -29,6 +29,7 @@ import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.EventBus.CloseDoorEvent;
+import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Service.SwitchService;
@@ -250,9 +251,7 @@ public class MainActivity extends FunctionActivity {
                 }
             }
         });
-        if (mGestureLib == null)
-
-        {
+        if (mGestureLib == null) {
             mGestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
             mGestureLib.load();
         }
@@ -289,7 +288,7 @@ public class MainActivity extends FunctionActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        EventBus.getDefault().post(new CloseDoorEvent());
+        EventBus.getDefault().post(new ExitEvent());
         stopService(intent);
         disposableTips.dispose();
         EventBus.getDefault().unregister(this);
