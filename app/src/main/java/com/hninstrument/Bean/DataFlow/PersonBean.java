@@ -24,7 +24,7 @@ public class PersonBean {
         this.name = name;
     }
 
-    public void setFaceReconition(String faceReconition) {
+    public void setFaceReconition(int faceReconition) {
         this.faceReconition = faceReconition;
     }
 
@@ -40,7 +40,7 @@ public class PersonBean {
         return name;
     }
 
-    public String getFaceReconition() {
+    public int getFaceReconition() {
         return faceReconition;
     }
 
@@ -54,7 +54,7 @@ public class PersonBean {
 
     String cardId;
     String name;
-    String faceReconition;
+    int faceReconition;
     Bitmap headPhoto;
     Bitmap photo;
 }

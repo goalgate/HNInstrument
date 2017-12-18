@@ -23,6 +23,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -36,6 +38,8 @@ import io.reactivex.schedulers.Schedulers;
  */
 
 public class SwitchService extends Service implements ISwitchView {
+
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
 
     private SPUtils config = SPUtils.getInstance("config");
 
@@ -110,33 +114,6 @@ public class SwitchService extends Service implements ISwitchView {
 
                                         }
                                     });
-
-         /*                   Map<String, Object> map = new HashMap<String, Object>();
-                            map.put("daid", config.getString("devid"));
-                            map.put("dataType", "checkOnline");
-                            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
-                            RetrofitGenerator.getCommonApi().CommonRequest(map)
-                                    .subscribeOn(Schedulers.io()).subscribe(new Observer<String>() {
-                                @Override
-                                public void onSubscribe(@NonNull Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(@NonNull String s) {
-
-                                }
-
-                                @Override
-                                public void onError(@NonNull Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });*/
                         }
                     }
                 });
@@ -259,87 +236,27 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void alarmRecord() {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&time=" + TimeUtils.getNowString(),
+            connectionUtil.post(config.getString("ServerId")+ "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
                         }
                     });
-        }
-            /*Map<String, Object> map = new HashMap<String, Object>();
-            map.put("daid", config.getString("devid"));
-            map.put("dataType", "alarm");
-            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
-            map.put("alarmType", "1");
-            map.put("time", TimeUtils.getNowString());
-            RetrofitGenerator.getCommonApi().CommonRequest(map)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<String>() {
-                        @Override
-                        public void onSubscribe(@NonNull Disposable d) {
-
-                        }
-
-                        @Override
-                        public void onNext(@NonNull String s) {
-
-                        }
-
-                        @Override
-                        public void onError(@NonNull Throwable e) {
-
-                        }
-
-                        @Override
-                        public void onComplete() {
-
-                        }
-                    });*/
-        else {
+        } else {
 
         }
     }
 
     private void CloseDoorRecord(String time) {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&time=" + TimeUtils.getNowString(),
+            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor"+"&time=" + formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
                         }
                     });
-          /*  Map<String, Object> map = new HashMap<String, Object>();
-            map.put("daid", config.getString("devid"));
-            map.put("dataType", "closeDoor");
-            map.put("pass", new SafeCheck().getPass(config.getString("devid")));
-            map.put("time", TimeUtils.getNowString());
-            RetrofitGenerator.getCommonApi().CommonRequest(map)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<String>() {
-                        @Override
-                        public void onSubscribe(@NonNull Disposable d) {
-
-                        }
-
-                        @Override
-                        public void onNext(@NonNull String s) {
-
-                        }
-
-                        @Override
-                        public void onError(@NonNull Throwable e) {
-
-                        }
-
-                        @Override
-                        public void onComplete() {
-
-                        }
-                    });*/
         } else {
 
         }

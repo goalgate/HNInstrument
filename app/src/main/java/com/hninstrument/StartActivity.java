@@ -43,7 +43,7 @@ public class StartActivity extends Activity {
     void next() {
         if (pattern.matcher(dev_suffix.getText().toString()).matches()) {
             config.put("firstStart", false);
-            config.put("ServerId","http://192.168.12.168:7001/");
+            config.put("ServerId","http://124.172.232.87:8802/");
             config.put("devid", dev_prefix.getText().toString() + dev_suffix.getText().toString());
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
             StartActivity.this.finish();
