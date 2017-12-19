@@ -12,6 +12,7 @@ import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
+import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
@@ -29,6 +30,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -119,7 +121,12 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
 
-
+      /*  Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
+            @Override
+            public void accept(@NonNull Long aLong) throws Exception {
+                sp.readHum();
+            }
+        });*/
     }
 
     private void updata(){
@@ -171,7 +178,7 @@ public class SwitchService extends Service implements ISwitchView {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetCloseEvent(CloseDoorEvent event) {
         lock.setLockState(new State_Lockup(sp));
-        CloseDoorRecord(TimeUtils.getNowString());
+        CloseDoorRecord();
         sp.buzz(SwitchImpl.Hex.H2);
     }
 
@@ -201,7 +208,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     @Override
     public void onTemHum(int temperature, int humidity) {
-
+        EventBus.getDefault().post(new TemHumEvent(temperature, humidity));
     }
 
     @Override
@@ -209,37 +216,18 @@ public class SwitchService extends Service implements ISwitchView {
         if ((Last_Value == null || Last_Value.equals(""))) {
             Last_Value = value;
         }
-        if (!value.equals(Last_Value)) {
-            Last_Value = value;
-            if (Last_Value.equals("AAAAAA000000000000")) {
-                if (getLockState(State_Lockup.class)) {
-                    lock.doNext();
-                    alarmRecord();
-                }
-            }
-        }
-   /*     if ((Last_Value == null || Last_Value.equals(""))) {
-            if (value.startsWith("AAAAAA")) {
+        if(value.startsWith("AAAAAA")){
+            if (!value.equals(Last_Value)) {
                 Last_Value = value;
-                if (value.equals("AAAAAA000000000000")) {
-                    lock.doNext();
-                    alarmRecord();
-                }
-            }
-
-        } else {
-            if (value.startsWith("AAAAAA")) {
-                if (!value.equals(Last_Value)) {
-                    Last_Value = value;
-                    if (Last_Value.equals("AAAAAA000000000000")) {
-                        if (getLockState(State_Lockup.class)) {
-                            lock.doNext();
-                            alarmRecord();
-                        }
+                if (Last_Value.equals("AAAAAA000000000000")) {
+                    if (getLockState(State_Lockup.class)) {
+                        lock.doNext();
+                        alarmRecord();
                     }
                 }
             }
-        }*/
+        }
+
     }
 
 
@@ -257,7 +245,7 @@ public class SwitchService extends Service implements ISwitchView {
         }
     }
 
-    private void CloseDoorRecord(String time) {
+    private void CloseDoorRecord() {
         if (network_State) {
             connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor"+"&time=" + formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {

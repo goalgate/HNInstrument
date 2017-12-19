@@ -32,6 +32,7 @@ import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
+import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.No_one_OperateState;
 import com.hninstrument.State.OperationState.One_man_OperateState;
@@ -52,9 +53,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -71,8 +70,6 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends FunctionActivity {
-
-    private static final String Server_URL = "http://((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?):\\d{4}/";
 
     private SPUtils config = SPUtils.getInstance("config");
 
@@ -105,9 +102,17 @@ public class MainActivity extends FunctionActivity {
     @BindView(R.id.iv_lock)
     ImageView iv_lock;
 
+    @BindView(R.id.tv_temp)
+    TextView tv_temperature;
+
+    @BindView(R.id.tv_humid)
+    TextView tv_humidity;
+
     @OnClick(R.id.iv_network)
     void network() {
         etName.setText(config.getString("ServerId"));
+        dev_name.setText(config.getString("devid"));
+        ip_name.setText(NetworkUtils.getIPAddress(true));
         inputServerView.show();
     }
 
@@ -121,8 +126,6 @@ public class MainActivity extends FunctionActivity {
     Bitmap headphoto;
 
     Bitmap photo;
-
-    String Msg_network;
 
     String persontype;
 
@@ -159,19 +162,11 @@ public class MainActivity extends FunctionActivity {
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
-        inputServerView = new AlertView("服务器设置,版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+        inputServerView = new AlertView("服务器设置,软件版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
                     url = etName.getText().toString().replaceAll(" ", "");
-       /*             Pattern pattern = Pattern.compile(Server_URL);
-                    if (!(url.endsWith("/"))) {
-                        url = url + "/";
-                    }
-                    if (!(url.startsWith("http://"))) {
-                        url = "http://" + url;
-                    }
-                    if (pattern.matcher(url).matches()) {*/
                     connectionUtil.post(url + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test", url
                             , new ServerConnectionUtil.Callback() {
                                 @Override
@@ -179,6 +174,7 @@ public class MainActivity extends FunctionActivity {
                                     if (response != null) {
                                         if (response.startsWith("true")) {
                                             config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功");
                                         } else {
                                             ToastUtils.showLong("设备验证错误");
                                         }
@@ -188,7 +184,6 @@ public class MainActivity extends FunctionActivity {
                                     }
                                 }
                             });
-                    /*}*/
                 }
 
             }
@@ -197,8 +192,6 @@ public class MainActivity extends FunctionActivity {
         ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
         ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
-        dev_name.setText(config.getString("devid"));
-        ip_name.setText(NetworkUtils.getIPAddress(true));
         etName = (EditText) extView1.findViewById(R.id.server_input);
         inputServerView.addExtView(extView1);
 
@@ -232,14 +225,11 @@ public class MainActivity extends FunctionActivity {
 
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
-        gestures.addOnGesturePerformedListener(new GestureOverlayView.OnGesturePerformedListener()
-
-        {
+        gestures.addOnGesturePerformedListener(new GestureOverlayView.OnGesturePerformedListener() {
             @Override
             public void onGesturePerformed(GestureOverlayView overlay,
                                            Gesture gesture) {
-                ArrayList<Prediction> predictions = mGestureLib
-                        .recognize(gesture);
+                ArrayList<Prediction> predictions = mGestureLib.recognize(gesture);
                 if (predictions.size() > 0) {
                     Prediction prediction = (Prediction) predictions.get(0);
                     // 匹配的手势
@@ -255,13 +245,12 @@ public class MainActivity extends FunctionActivity {
             mGestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
             mGestureLib.load();
         }
-
         autoUpdate();
     }
 
 
     private void autoUpdate() {
-        connectionUtil.download(config.getString("ServerId") + "updateApp?ver=" + AppUtils.getAppVersionCode(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName()+"&url="+config.getString("ServerId")+"&daid="+config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -301,7 +290,12 @@ public class MainActivity extends FunctionActivity {
         } else {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.non_wifi));
         }
-        Msg_network = event.getMsg();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetTemHumEvent(TemHumEvent event) {
+        tv_temperature.setText(event.getTem() + "度");
+        tv_humidity.setText(event.getHum() + "%");
     }
 
 
