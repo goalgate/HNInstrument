@@ -170,7 +170,7 @@ public class MainActivity extends FunctionActivity {
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
                     url = etName.getText().toString().replaceAll(" ", "");
-                    connectionUtil.post(url + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test", url
+                    connectionUtil.post(url + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test", url
                             , new ServerConnectionUtil.Callback() {
                                 @Override
                                 public void onResponse(String response) {
@@ -253,7 +253,7 @@ public class MainActivity extends FunctionActivity {
 
 
     private void autoUpdate() {
-        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName()+"&url="+config.getString("ServerId")+"&daid="+config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
             @Override
             public void onResponse(String response) {
                 if (response != null) {
@@ -345,7 +345,7 @@ public class MainActivity extends FunctionActivity {
             pp.capture();
             idp.stopReadCard();
         } else {
-            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=queryPersion"/*queryPersonUri*/+ "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix() + "dataType=queryPersion"/*queryPersonUri*/ + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
 
                 @Override
                 public void onResponse(String response) {
@@ -384,9 +384,9 @@ public class MainActivity extends FunctionActivity {
         photo = bitmapChange(bmp, 0.3f, 0.3f);
         if (persontype.equals("1")) {
             if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
-                if(type.isFace()){
+                if (type.isFace()) {
                     face_upData();
-                }else{
+                } else {
                     noface_upData();
                 }
             } else if (getState(Two_man_OperateState.class)) {
@@ -405,7 +405,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
@@ -441,7 +441,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=faceRecognition"/*faceRecognitionUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=faceRecognition"/*faceRecognitionUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -487,7 +487,7 @@ public class MainActivity extends FunctionActivity {
                                     EventBus.getDefault().post(new PassEvent());
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
-                                    openDoorUpData();
+                                    face_openDoorUpData();
                                 }
                             } else {
                                 tips.setText("仓管员数据：人脸识别结果" + response.substring(5, response.length()) + "，请重试");
@@ -510,14 +510,53 @@ public class MainActivity extends FunctionActivity {
     }
 
     private void noface_upData() {
+        operation.doNext();
+        if (getState(One_man_OperateState.class)) {
+            person1.setPhoto(photo);
+            photo = bitmapChange(photo, 3.3f, 5f);
+            captured1.setImageBitmap(photo);
+            tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
+            pp.setDisplay(surfaceView.getHolder());
+            idp.readCard();
+            Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
+                    .compose(MainActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<Long>() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                            checkChange = d;
+                        }
 
+                        @Override
+                        public void onNext(Long aLong) {
+                            checkRecord();
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        } else if ((getState(Two_man_OperateState.class))) {
+            person2.setPhoto(photo);
+            captured1.setImageBitmap(null);
+            EventBus.getDefault().post(new PassEvent());
+            iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
+            tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
+            noface_openDoorUpData();
+        }
     }
 
     private void unknownPersonData() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=persionRecord"/*personRecordUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=persionRecord"/*personRecordUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -530,11 +569,11 @@ public class MainActivity extends FunctionActivity {
 
     }
 
-    private void openDoorUpData() {
+    private void face_openDoorUpData() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         person1.getPhoto().compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=samePsonFaceRecognition"/*samePsonFaceRecognitionUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=samePsonFaceRecognition"/*samePsonFaceRecognitionUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -543,13 +582,15 @@ public class MainActivity extends FunctionActivity {
                         idp.readCard();
                         if (response != null) {
                             if (response.startsWith("true")) {
-                                connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=openDoor"+ "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
+                                connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                         config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
                                         new ServerConnectionUtil.Callback() {
                                             @Override
                                             public void onResponse(String response) {
-                                                tips.setText("开门记录已上传到服务器");
+                                                if(response!=null){
+                                                    tips.setText("开门记录已上传到服务器");
+                                                }
                                             }
                                         });
                             } else {
@@ -568,6 +609,22 @@ public class MainActivity extends FunctionActivity {
         }
     }
 
+
+    private void noface_openDoorUpData() {
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid"),
+                config.getString("ServerId"),
+                new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), person2.getPhoto()).toByteArray(),
+                new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        if(response!=null){
+                            tips.setText("开门记录已上传到服务器");
+                        }
+                    }
+                });
+
+
+    }
 
     private Boolean getState(Class stateClass) {
         if (operation.getState().getClass().getName().equals(stateClass.getName())) {
