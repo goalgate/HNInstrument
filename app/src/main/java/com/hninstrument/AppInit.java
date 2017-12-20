@@ -50,7 +50,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HN_Config();
+        InstrumentConfig = new HB_Config();
 
         Utils.init(getContext());
 

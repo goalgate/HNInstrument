@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -111,6 +112,12 @@ public class MainActivity extends FunctionActivity {
     @BindView(R.id.tv_humid)
     TextView tv_humidity;
 
+    @BindView(R.id.iv_humid)
+    ImageView iv_humidity;
+
+    @BindView(R.id.iv_temp)
+    ImageView iv_temperature;
+
     @OnClick(R.id.iv_network)
     void network() {
         etName.setText(config.getString("ServerId"));
@@ -162,6 +169,15 @@ public class MainActivity extends FunctionActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
+
+        if(type.isTemHum()){
+            iv_temperature.setVisibility(View.VISIBLE);
+            iv_humidity.setVisibility(View.VISIBLE);
+        }else{
+            iv_temperature.setVisibility(View.INVISIBLE);
+            iv_humidity.setVisibility(View.INVISIBLE);
+        }
+
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
