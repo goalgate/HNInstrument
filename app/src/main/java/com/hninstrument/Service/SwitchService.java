@@ -8,6 +8,8 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.AppInit;
+import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -24,6 +26,8 @@ import com.hninstrument.Tools.ServerConnectionUtil;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,6 +48,8 @@ public class SwitchService extends Service implements ISwitchView {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
 
+    private BaseConfig type = AppInit.getInstrumentConfig();
+
     private SPUtils config = SPUtils.getInstance("config");
 
     ServerConnectionUtil connectionUtil = new ServerConnectionUtil();
@@ -58,6 +64,13 @@ public class SwitchService extends Service implements ISwitchView {
 
     Disposable dis_checkOnline;
 
+    Disposable dis_TemHum;
+
+    Disposable dis_stateRecord;
+
+    int last_mTemperature = 0;
+
+    int last_mHumidity = 0;
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -78,7 +91,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(Long aLong) throws Exception {
                         if (NetworkUtils.isConnected()) {
-                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
+                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
                                     ,config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
@@ -110,7 +123,7 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_State) {
-                            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=checkOnline"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
+                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=checkOnline"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
                                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
@@ -121,16 +134,27 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
 
-      /*  Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(@NonNull Long aLong) throws Exception {
-                sp.readHum();
-            }
-        });*/
+        if(type.isTemHum()){
+            dis_TemHum = Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
+                @Override
+                public void accept(@NonNull Long aLong) throws Exception {
+                    sp.readHum();
+                }
+            });
+
+            dis_stateRecord = Observable.interval(10, 3600, TimeUnit.SECONDS).observeOn(Schedulers.io())
+                    .subscribe(new Consumer<Long>() {
+                        @Override
+                        public void accept(@NonNull Long aLong) throws Exception {
+                            StateRecord();
+                        }
+                    });
+        }
+
     }
 
     private void updata(){
-        connectionUtil.post(config.getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=1",
+        connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=1",
                 config.getString("ServerId"),
                 new ServerConnectionUtil.Callback() {
             @Override
@@ -142,7 +166,7 @@ public class SwitchService extends Service implements ISwitchView {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "1");
                         }
-                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + "da_gzmb_persionInfo?dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=2",
+                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=2",
                                 config.getString("ServerId"),new ServerConnectionUtil.Callback() {
 
                             @Override
@@ -200,6 +224,12 @@ public class SwitchService extends Service implements ISwitchView {
         if (dis_checkOnline != null) {
             dis_checkOnline.dispose();
         }
+        if(dis_stateRecord != null){
+            dis_stateRecord.dispose();
+        }
+        if (dis_TemHum != null){
+            dis_TemHum.dispose();
+        }
         EventBus.getDefault().unregister(this);
    /*     Intent localIntent = new Intent();
         localIntent.setClass(this, SwitchService.class); //销毁时重新启动Service
@@ -209,6 +239,12 @@ public class SwitchService extends Service implements ISwitchView {
     @Override
     public void onTemHum(int temperature, int humidity) {
         EventBus.getDefault().post(new TemHumEvent(temperature, humidity));
+        if ((Math.abs(temperature - last_mTemperature) > 3 || Math.abs(temperature - last_mTemperature) > 10)) {
+            StateRecord();
+        }
+        last_mTemperature = temperature;
+        last_mHumidity = humidity;
+
     }
 
     @Override
@@ -230,10 +266,23 @@ public class SwitchService extends Service implements ISwitchView {
 
     }
 
+    private void StateRecord() {
+        if (network_State) {
+            connectionUtil.post(config.getString("ServerId")+ type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=temHum&tem="+last_mTemperature+"&hum="+last_mHumidity+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
+                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+
+                        }
+                    });
+        }
+
+    }
+
 
     private void alarmRecord() {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId")+ "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
+            connectionUtil.post(config.getString("ServerId")+ type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
@@ -247,7 +296,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void CloseDoorRecord() {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=closeDoor"+"&time=" + formatter.format(new Date(System.currentTimeMillis())),
+            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=closeDoor"+"&time=" + formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {

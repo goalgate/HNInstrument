@@ -30,4 +30,9 @@ public class HN_Config extends BaseConfig {
     public String getUpDataPrefix() {
         return "da_gzmb_updata?";
     }
+
+    @Override
+    public String getDev_prefix() {
+        return "800200";
+    }
 }

@@ -28,6 +28,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
+import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -72,6 +73,8 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends FunctionActivity {
 
     private SPUtils config = SPUtils.getInstance("config");
+
+    private BaseConfig type = AppInit.getInstrumentConfig();
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -139,7 +142,7 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
-    private static String queryPersonUri = "da_gzmb_persionInfo?dataType=queryPersion";
+ /*   private static String queryPersonUri = "da_gzmb_persionInfo?dataType=queryPersion";
 
     private static String personRecordUri = "da_gzmb_updata?dataType=persionRecord";
 
@@ -149,7 +152,7 @@ public class MainActivity extends FunctionActivity {
 
     private static String samePsonFaceRecognitionUri = "da_gzmb_updata?dataType=samePsonFaceRecognition";
 
-    private static String OpenDoorUri = "da_gzmb_updata?dataType=openDoor";
+    private static String OpenDoorUri = "da_gzmb_updata?dataType=openDoor";*/
 
     String url;
 
@@ -167,7 +170,7 @@ public class MainActivity extends FunctionActivity {
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
                     url = etName.getText().toString().replaceAll(" ", "");
-                    connectionUtil.post(url + "da_gzmb_updata?daid=" + config.getString("devid") + "&dataType=test", url
+                    connectionUtil.post(url + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test", url
                             , new ServerConnectionUtil.Callback() {
                                 @Override
                                 public void onResponse(String response) {
@@ -342,7 +345,8 @@ public class MainActivity extends FunctionActivity {
             pp.capture();
             idp.stopReadCard();
         } else {
-            connectionUtil.post(config.getString("ServerId") + queryPersonUri + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=queryPersion"/*queryPersonUri*/+ "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+
                 @Override
                 public void onResponse(String response) {
                     if (response != null) {
@@ -380,7 +384,11 @@ public class MainActivity extends FunctionActivity {
         photo = bitmapChange(bmp, 0.3f, 0.3f);
         if (persontype.equals("1")) {
             if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
-                upData();
+                if(type.isFace()){
+                    face_upData();
+                }else{
+                    noface_upData();
+                }
             } else if (getState(Two_man_OperateState.class)) {
                 operation.doNext();
                 pp.setDisplay(surfaceView.getHolder());
@@ -397,7 +405,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + checkRecordUri + "&daid=" + config.getString("devid") + "&checkType=2",
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
@@ -429,11 +437,11 @@ public class MainActivity extends FunctionActivity {
         }
     }
 
-    private void upData() {
+    private void face_upData() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + faceRecognitionUri + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=faceRecognition"/*faceRecognitionUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -501,11 +509,15 @@ public class MainActivity extends FunctionActivity {
         }
     }
 
+    private void noface_upData() {
+
+    }
+
     private void unknownPersonData() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + personRecordUri + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=persionRecord"/*personRecordUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -522,7 +534,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         person1.getPhoto().compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + samePsonFaceRecognitionUri + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=samePsonFaceRecognition"/*samePsonFaceRecognitionUri*/ + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -531,8 +543,8 @@ public class MainActivity extends FunctionActivity {
                         idp.readCard();
                         if (response != null) {
                             if (response.startsWith("true")) {
-                                connectionUtil.post(config.getString("ServerId")/*"http://192.168.12.165:7001/daServer/"*/ + OpenDoorUri + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
-                                        config.getString("ServerId")/*"http://192.168.12.165:7001/daServer/"*/,
+                                connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"dataType=openDoor"+ "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
+                                        config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
                                         new ServerConnectionUtil.Callback() {
                                             @Override

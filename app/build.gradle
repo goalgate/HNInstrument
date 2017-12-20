@@ -8,7 +8,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -57,4 +57,6 @@ dependencies {
     compile 'com.bigkoo:alertview:1.0.3'
     compile 'org.greenrobot:greendao:3.2.2'
     compile files('libs/BASE64.jar')
+    compile 'cn.finalteam:okhttpfinal:2.0.7'
+
 }

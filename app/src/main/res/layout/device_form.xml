@@ -28,7 +28,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginTop="5dp"
-            android:text="800200"
             android:textColor="@color/primary_light"
             android:textSize="10pt" />
 

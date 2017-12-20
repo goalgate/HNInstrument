@@ -15,4 +15,6 @@ public abstract class BaseConfig {
     public abstract String getUpDataPrefix();
 
     public abstract String getPersonInfoPrefix();
+
+    public abstract String getDev_prefix();
 }

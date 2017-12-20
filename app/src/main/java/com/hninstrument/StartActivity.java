@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.ActivityUtils;
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 
@@ -36,6 +37,7 @@ public class StartActivity extends Activity {
 
     @BindView(R.id.dev_prefix)
     TextView dev_prefix;
+
     @BindView(R.id.devid_input)
     EditText dev_suffix;
 
@@ -43,8 +45,8 @@ public class StartActivity extends Activity {
     void next() {
         if (pattern.matcher(dev_suffix.getText().toString()).matches()) {
             config.put("firstStart", false);
-            config.put("ServerId","http://124.172.232.87:8802/");
-            config.put("devid", dev_prefix.getText().toString() + dev_suffix.getText().toString());
+            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+            config.put("devid", AppInit.getInstrumentConfig().getDev_prefix() + dev_suffix.getText().toString());
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
             StartActivity.this.finish();
             ToastUtils.showLong("设备ID设置成功");
@@ -58,5 +60,6 @@ public class StartActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.device_form);
         ButterKnife.bind(this);
+        dev_prefix.setText(AppInit.getInstrumentConfig().getDev_prefix());
     }
 }
