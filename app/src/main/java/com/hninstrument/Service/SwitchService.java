@@ -90,8 +90,7 @@ public class SwitchService extends Service implements ISwitchView {
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        if (NetworkUtils.isConnected()) {
-                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
+                        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
                                     ,config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
@@ -113,8 +112,6 @@ public class SwitchService extends Service implements ISwitchView {
                                         }
                                     });
                         }
-                    }
-
                 });
 
         dis_checkOnline = Observable.interval(1, 1, TimeUnit.HOURS)

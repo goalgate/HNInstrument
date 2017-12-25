@@ -149,19 +149,6 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
- /*   private static String queryPersonUri = "da_gzmb_persionInfo?dataType=queryPersion";
-
-    private static String personRecordUri = "da_gzmb_updata?dataType=persionRecord";
-
-    private static String checkRecordUri = "da_gzmb_updata?dataType=checkRecord";
-
-    private static String faceRecognitionUri = "da_gzmb_updata?dataType=faceRecognition";
-
-    private static String samePsonFaceRecognitionUri = "da_gzmb_updata?dataType=samePsonFaceRecognition";
-
-    private static String OpenDoorUri = "da_gzmb_updata?dataType=openDoor";*/
-
-    String url;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -185,7 +172,7 @@ public class MainActivity extends FunctionActivity {
             @Override
             public void onItemClick(Object o, int position) {
                 if (position == 0) {
-                    url = etName.getText().toString().replaceAll(" ", "");
+                    final String url = etName.getText().toString().replaceAll(" ", "");
                     connectionUtil.post(url + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test", url
                             , new ServerConnectionUtil.Callback() {
                                 @Override
@@ -204,7 +191,6 @@ public class MainActivity extends FunctionActivity {
                                 }
                             });
                 }
-
             }
         });
 
@@ -267,7 +253,6 @@ public class MainActivity extends FunctionActivity {
         autoUpdate();
     }
 
-
     private void autoUpdate() {
         connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
             @Override
@@ -313,7 +298,7 @@ public class MainActivity extends FunctionActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetTemHumEvent(TemHumEvent event) {
-        tv_temperature.setText(event.getTem() + "度");
+        tv_temperature.setText(event.getTem() + "℃");
         tv_humidity.setText(event.getHum() + "%");
     }
 
@@ -361,7 +346,7 @@ public class MainActivity extends FunctionActivity {
             pp.capture();
             idp.stopReadCard();
         } else {
-            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix() + "dataType=queryPersion"/*queryPersonUri*/ + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
 
                 @Override
                 public void onResponse(String response) {
@@ -457,7 +442,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=faceRecognition"/*faceRecognitionUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=faceRecognition" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -572,7 +557,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=persionRecord"/*personRecordUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=persionRecord"+ "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -589,7 +574,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         person1.getPhoto().compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=samePsonFaceRecognition"/*samePsonFaceRecognitionUri*/ + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=samePsonFaceRecognition"+ "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override

@@ -27,7 +27,7 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
         super.onCreate(savedInstanceState);
         BarUtils.hideStatusBar(this);
         idp.idCardOpen();
-        pp.initCamera();
+        //pp.initCamera();
     }
 
     @Override

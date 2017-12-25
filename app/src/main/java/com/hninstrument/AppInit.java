@@ -6,6 +6,7 @@ import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.HB_Config;
 import com.hninstrument.Config.HN_Config;
+import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
 
@@ -20,6 +21,8 @@ public class AppInit extends Application {
     protected static AppInit instance;
 
     protected static BaseConfig InstrumentConfig;
+
+    PhotoPresenter pp = PhotoPresenter.getInstance();
 
     public static BaseConfig getInstrumentConfig() {
         return InstrumentConfig;
@@ -50,11 +53,13 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HB_Config();
+        InstrumentConfig = new HN_Config();
 
         Utils.init(getContext());
 
         initDatabase();
+
+        pp.initCamera();
 
     }
 
