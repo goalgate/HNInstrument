@@ -28,6 +28,7 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 
+import com.google.zxing.qrcode.encoder.QRCode;
 import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
@@ -42,6 +43,7 @@ import com.hninstrument.State.OperationState.No_one_OperateState;
 import com.hninstrument.State.OperationState.One_man_OperateState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.State.OperationState.Two_man_OperateState;
+import com.hninstrument.Tools.DAInfo;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 
@@ -125,9 +127,23 @@ public class MainActivity extends FunctionActivity {
 
     @OnClick(R.id.iv_network)
     void network() {
+        Bitmap mBitmap = null;
         etName.setText(config.getString("ServerId"));
         dev_name.setText(config.getString("devid"));
         ip_name.setText(NetworkUtils.getIPAddress(true));
+        DAInfo di=new DAInfo();
+        try {
+            di.setId(config.getString("devid"));
+            di.setName("数据采集器");
+            di.setModel("CBDI-ID");
+            di.setSoftwareVer("1.0");
+            di.setProject("HNJD");
+            mBitmap = di.daInfoBmp();
+        }catch (Exception ex){}
+        if(mBitmap!=null)
+        {
+            QRview.setImageBitmap(mBitmap);
+        }
         inputServerView.show();
     }
 
@@ -151,6 +167,8 @@ public class MainActivity extends FunctionActivity {
     private TextView ip_name;
 
     private EditText etName;
+
+    private ImageView QRview;
 
     private AlertView inputServerView;
 
@@ -203,6 +221,7 @@ public class MainActivity extends FunctionActivity {
         dev_name = (TextView) extView1.findViewById(R.id.dev_id);
         ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
         etName = (EditText) extView1.findViewById(R.id.server_input);
+        QRview = (ImageView) extView1.findViewById(R.id.QRimage) ;
         inputServerView.addExtView(extView1);
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
