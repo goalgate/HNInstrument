@@ -2,8 +2,10 @@ package com.hninstrument.Service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Environment;
 import android.os.IBinder;
 
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
@@ -29,6 +31,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -98,6 +101,7 @@ public class SwitchService extends Service implements ISwitchView {
                                                 if (response.startsWith("true")) {
                                                     if(!network_State){
                                                         updata();
+                                                        autoUpdate();
                                                     }
                                                     network_State = true;
                                                     EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
@@ -148,6 +152,19 @@ public class SwitchService extends Service implements ISwitchView {
                     });
         }
 
+    }
+
+    private void autoUpdate() {
+        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+            @Override
+            public void onResponse(String response) {
+                if (response != null) {
+                    if (response.equals("true")) {
+                        AppUtils.installApp(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Download" + File.separator + "app-release.apk"), "application/vnd.android.package-archive");
+                    }
+                }
+            }
+        });
     }
 
     private void updata(){

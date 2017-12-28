@@ -274,21 +274,9 @@ public class MainActivity extends FunctionActivity {
             mGestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
             mGestureLib.load();
         }
-        autoUpdate();
     }
 
-    private void autoUpdate() {
-        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-            @Override
-            public void onResponse(String response) {
-                if (response != null) {
-                    if (response.equals("true")) {
-                        AppUtils.installApp(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Download" + File.separator + "app-release.apk"), "application/vnd.android.package-archive");
-                    }
-                }
-            }
-        });
-    }
+
 
     void openService() {
         intent = new Intent(MainActivity.this, SwitchService.class);

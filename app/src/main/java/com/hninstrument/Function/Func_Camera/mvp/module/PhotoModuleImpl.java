@@ -13,6 +13,14 @@ import com.hninstrument.AppInit;
 
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -202,11 +210,13 @@ public class PhotoModuleImpl implements IPhotoModule {
     IOnSetListener callback;
 
     @Override
-    public void setDisplay(SurfaceHolder sHolder) {
+    public void setDisplay(final SurfaceHolder sHolder) {
         try {
 /*            isPreview = true;*/
-            camera.setPreviewDisplay(sHolder);
-            camera.startPreview();
+            if(camera!=null){
+                camera.setPreviewDisplay(sHolder);
+                camera.startPreview();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -341,8 +351,7 @@ public class PhotoModuleImpl implements IPhotoModule {
     private void safeCameraOpen(int id) {
         try {
             releaseCameraAndPreview();
-            camera = Camera.open(id);
-
+            camera = Camera.open();
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(),"无法获取摄像头权限",Toast.LENGTH_LONG);
             e.printStackTrace();
@@ -353,8 +362,7 @@ public class PhotoModuleImpl implements IPhotoModule {
     private void releaseCameraAndPreview() {
         if (camera != null) {
             camera.release();
-            camera = null;
-        }
+    }
 
     }
 }

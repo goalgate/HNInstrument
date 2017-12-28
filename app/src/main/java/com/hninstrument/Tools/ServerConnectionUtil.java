@@ -97,8 +97,8 @@ public class ServerConnectionUtil {
             safeCheck.setURL(server);
             URL url = new URL(baseUrl+"&pass=" + safeCheck.getPass(config.getString("devid")));
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(TIME_OUT);
-            conn.setConnectTimeout(TIME_OUT);
+            conn.setReadTimeout(200 * 1000);
+            conn.setConnectTimeout(200 * 1000);
             conn.setDoInput(true);  //允许输入流
             conn.setDoOutput(true); //允许输出流
             conn.setUseCaches(false);  //不允许使用缓存
