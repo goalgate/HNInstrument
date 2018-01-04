@@ -30,6 +30,7 @@ import com.blankj.utilcode.util.ToastUtils;
 
 import com.google.zxing.qrcode.encoder.QRCode;
 import com.hninstrument.Bean.DataFlow.PersonBean;
+import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
@@ -134,10 +135,10 @@ public class MainActivity extends FunctionActivity {
         DAInfo di=new DAInfo();
         try {
             di.setId(config.getString("devid"));
-            di.setName("数据采集器");
-            di.setModel("CBDI-ID");
-            di.setSoftwareVer("1.0");
-            di.setProject("HNJD");
+            di.setName(type.getName());
+            di.setModel(type.getModel());
+            di.setSoftwareVer(AppUtils.getAppVersionName());
+            di.setProject(type.getProject());
             mBitmap = di.daInfoBmp();
         }catch (Exception ex){}
         if(mBitmap!=null)
@@ -235,7 +236,7 @@ public class MainActivity extends FunctionActivity {
                 });
 
         disposableTips = RxTextView.textChanges(tips)
-                .debounce(60, TimeUnit.SECONDS)
+                .debounce(120, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws
@@ -330,9 +331,9 @@ public class MainActivity extends FunctionActivity {
     @Override
     public void onsetCardInfo(final CardInfoRk123x cardInfo) {
         this.cardInfo = cardInfo;
+        tips.setText(cardInfo.name() + "刷卡中");
         if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
             if (getState(No_one_OperateState.class)) {
-                tips.setText(cardInfo.name() + "刷卡中");
                 person1.setCardId(cardInfo.cardId());
                 person1.setName(cardInfo.name());
             } else if (getState(One_man_OperateState.class)) {
@@ -342,7 +343,6 @@ public class MainActivity extends FunctionActivity {
                     tips.setText("请不要连续输入同一个管理员的信息");
                     return;
                 } else {
-                    tips.setText(cardInfo.name() + "刷卡中");
                     if (checkChange != null) {
                         checkChange.dispose();
                     }
@@ -415,12 +415,10 @@ public class MainActivity extends FunctionActivity {
     }
 
     private void checkRecord() {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
-        upPersonRecordData.setPic(outputStream.toByteArray());
+
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
                 config.getString("ServerId"),
-                upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
+                new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
@@ -441,13 +439,6 @@ public class MainActivity extends FunctionActivity {
                         }
                     }
                 });
-        try {
-            outputStream.flush();
-            outputStream.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void face_upData() {
@@ -632,6 +623,8 @@ public class MainActivity extends FunctionActivity {
                     public void onResponse(String response) {
                         if(response!=null){
                             tips.setText("开门记录已上传到服务器");
+                            pp.setDisplay(surfaceView.getHolder());
+                            idp.readCard();
                         }
                     }
                 });

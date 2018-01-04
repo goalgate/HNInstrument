@@ -118,7 +118,7 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                 });
 
-        dis_checkOnline = Observable.interval(1, 1, TimeUnit.HOURS)
+        dis_checkOnline = Observable.interval(0, type.getCheckOnlineTime(), TimeUnit.MINUTES)
                 .observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -263,10 +263,10 @@ public class SwitchService extends Service implements ISwitchView {
 
     @Override
     public void onSwitchingText(String value) {
-        if ((Last_Value == null || Last_Value.equals(""))) {
-            Last_Value = value;
-        }
         if(value.startsWith("AAAAAA")){
+            if ((Last_Value == null || Last_Value.equals(""))) {
+                Last_Value = value;
+            }
             if (!value.equals(Last_Value)) {
                 Last_Value = value;
                 if (Last_Value.equals("AAAAAA000000000000")) {

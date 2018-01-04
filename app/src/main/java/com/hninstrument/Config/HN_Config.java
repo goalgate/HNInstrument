@@ -35,4 +35,24 @@ public class HN_Config extends BaseConfig {
     public String getDev_prefix() {
         return "800200";
     }
+
+    @Override
+    public int getCheckOnlineTime() {
+        return 60;
+    }
+
+    @Override
+    public String getModel() {
+        return "CBDI-ID";
+    }
+
+    @Override
+    public String getName() {
+        return "数据采集器";
+    }
+
+    @Override
+    public String getProject() {
+        return "HNJD";
+    }
 }

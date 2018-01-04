@@ -17,4 +17,13 @@ public abstract class BaseConfig {
     public abstract String getPersonInfoPrefix();
 
     public abstract String getDev_prefix();
+
+    public abstract int getCheckOnlineTime();
+
+    public abstract String getName();
+
+    public abstract String getModel();
+
+    public abstract String getProject();
+
 }
