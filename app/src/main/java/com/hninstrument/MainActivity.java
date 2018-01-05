@@ -188,7 +188,6 @@ public class MainActivity extends FunctionActivity {
             iv_temperature.setVisibility(View.INVISIBLE);
             iv_humidity.setVisibility(View.INVISIBLE);
         }
-
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
