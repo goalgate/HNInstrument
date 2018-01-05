@@ -456,7 +456,6 @@ public class MainActivity extends FunctionActivity {
                                 if (getState(One_man_OperateState.class)) {
                                     person1.setPhoto(photo);
                                     person1.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
-                                    photo = bitmapChange(photo, 3.3f, 5f);
                                     captured1.setImageBitmap(photo);
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person1.getFaceReconition());
                                     pp.setDisplay(surfaceView.getHolder());
