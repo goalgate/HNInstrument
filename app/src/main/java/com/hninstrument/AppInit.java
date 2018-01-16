@@ -9,6 +9,7 @@ import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
+import com.ys.myapi.MyManager;
 
 import org.greenrobot.greendao.database.Database;
 import cbdi.log.Lg;
@@ -22,7 +23,13 @@ public class AppInit extends Application {
 
     protected static BaseConfig InstrumentConfig;
 
-    PhotoPresenter pp = PhotoPresenter.getInstance();
+/*    PhotoPresenter pp = PhotoPresenter.getInstance();*/
+
+    protected static MyManager manager;
+
+    public static MyManager getMyManager() {
+        return manager;
+    }
 
     public static BaseConfig getInstrumentConfig() {
         return InstrumentConfig;
@@ -53,13 +60,12 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HB_Config();
+        InstrumentConfig = new HN_Config();
+        manager = MyManager.getInstance(this);
 
         Utils.init(getContext());
 
         initDatabase();
-
-        pp.initCamera();
 
     }
 

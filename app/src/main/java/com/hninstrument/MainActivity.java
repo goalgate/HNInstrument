@@ -10,21 +10,29 @@ import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
+import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
+import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 
@@ -47,7 +55,6 @@ import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.DAInfo;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
-
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -55,11 +62,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -79,11 +82,13 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends FunctionActivity {
+public class MainActivity extends FunctionActivity implements AddPersonWindow.OptionTypeListener {
 
     private SPUtils config = SPUtils.getInstance("config");
 
-    private BaseConfig type = AppInit.getInstrumentConfig();
+    private BaseConfig ins_type = AppInit.getInstrumentConfig();
+
+    private SPUtils staticIP = SPUtils.getInstance("staticIP");
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -126,26 +131,15 @@ public class MainActivity extends FunctionActivity {
     @BindView(R.id.iv_temp)
     ImageView iv_temperature;
 
+    private AddPersonWindow personWindow;
+
     @OnClick(R.id.iv_network)
-    void network() {
-        Bitmap mBitmap = null;
-        etName.setText(config.getString("ServerId"));
-        dev_name.setText(config.getString("devid"));
-        ip_name.setText(NetworkUtils.getIPAddress(true));
-        DAInfo di=new DAInfo();
-        try {
-            di.setId(config.getString("devid"));
-            di.setName(type.getName());
-            di.setModel(type.getModel());
-            di.setSoftwareVer(AppUtils.getAppVersionName());
-            di.setProject(type.getProject());
-            mBitmap = di.daInfoBmp();
-        }catch (Exception ex){}
-        if(mBitmap!=null)
-        {
-            QRview.setImageBitmap(mBitmap);
-        }
-        inputServerView.show();
+    void show() {
+        personWindow = new AddPersonWindow(this);
+        personWindow.setOptionTypeListener(this);
+        personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
+
+
     }
 
     @BindView(R.id.gestures_overlay)
@@ -173,6 +167,7 @@ public class MainActivity extends FunctionActivity {
 
     private AlertView inputServerView;
 
+    String url;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -180,49 +175,16 @@ public class MainActivity extends FunctionActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
-
-        if(type.isTemHum()){
+        if (ins_type.isTemHum()) {
             iv_temperature.setVisibility(View.VISIBLE);
             iv_humidity.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             iv_temperature.setVisibility(View.INVISIBLE);
             iv_humidity.setVisibility(View.INVISIBLE);
         }
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
-        inputServerView = new AlertView("服务器设置,软件版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-                if (position == 0) {
-                    final String url = etName.getText().toString().replaceAll(" ", "");
-                    connectionUtil.post(url + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test", url
-                            , new ServerConnectionUtil.Callback() {
-                                @Override
-                                public void onResponse(String response) {
-                                    if (response != null) {
-                                        if (response.startsWith("true")) {
-                                            config.put("ServerId", url);
-                                            ToastUtils.showLong("连接服务器成功");
-                                        } else {
-                                            ToastUtils.showLong("设备验证错误");
-                                        }
-
-                                    } else {
-                                        ToastUtils.showLong("服务器连接失败");
-                                    }
-                                }
-                            });
-                }
-            }
-        });
-
-        ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
-        dev_name = (TextView) extView1.findViewById(R.id.dev_id);
-        ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
-        etName = (EditText) extView1.findViewById(R.id.server_input);
-        QRview = (ImageView) extView1.findViewById(R.id.QRimage) ;
-        inputServerView.addExtView(extView1);
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
@@ -252,6 +214,146 @@ public class MainActivity extends FunctionActivity {
                 });
         operation = new Operation(new No_one_OperateState());
 
+        setGesture();
+        ServerInput();
+        IpviewInit();
+    }
+
+    private void ServerInput() {
+        ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
+        dev_name = (TextView) extView1.findViewById(R.id.dev_id);
+        ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
+        etName = (EditText) extView1.findViewById(R.id.server_input);
+        QRview = (ImageView) extView1.findViewById(R.id.QRimage);
+        inputServerView = new AlertView("服务器设置,软件版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Object o, int position) {
+                if (position == 0) {
+                    if (!etName.getText().toString().replaceAll(" ", "").endsWith("/")) {
+                        url = etName.getText().toString() + "/";
+                    } else {
+                        url = etName.getText().toString();
+                    }
+                    connectionUtil.post(url + ins_type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test", url
+                            , new ServerConnectionUtil.Callback() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if (response != null) {
+                                        if (response.startsWith("true")) {
+                                            config.put("ServerId", url);
+                                            ToastUtils.showLong("连接服务器成功");
+                                        } else {
+                                            ToastUtils.showLong("设备验证错误");
+                                        }
+                                    } else {
+                                        ToastUtils.showLong("服务器连接失败");
+                                    }
+                                }
+                            });
+                }
+            }
+        });
+        inputServerView.addExtView(extView1);
+    }
+
+    private AlertView inputStaticIPView;
+    EditText et_Static_ip;
+
+    EditText et_Static_mask;
+
+    EditText et_Static_gateway;
+
+    EditText et_Static_dns1;
+
+    EditText et_Static_dns2;
+
+    CheckBox ipCheckBox;
+
+    private void IpviewInit() {
+        ViewGroup ipview = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputstaticip_form, null);
+        ipCheckBox = (CheckBox) ipview.findViewById(R.id.ip_checkBox);
+        et_Static_ip = (EditText) ipview.findViewById(R.id.static_ip);
+        et_Static_mask = (EditText) ipview.findViewById(R.id.static_mask);
+        et_Static_gateway = (EditText) ipview.findViewById(R.id.static_gateway);
+        et_Static_dns1 = (EditText) ipview.findViewById(R.id.static_DNS1);
+        et_Static_dns2 = (EditText) ipview.findViewById(R.id.static_DNS2);
+        ipCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    et_Static_ip.setEnabled(true);
+                    et_Static_mask.setEnabled(true);
+                    et_Static_gateway.setEnabled(true);
+                    et_Static_dns1.setEnabled(true);
+                    et_Static_dns2.setEnabled(true);
+                } else {
+                    et_Static_ip.setEnabled(false);
+                    et_Static_mask.setEnabled(false);
+                    et_Static_gateway.setEnabled(false);
+                    et_Static_dns1.setEnabled(false);
+                    et_Static_dns2.setEnabled(false);
+                }
+            }
+        });
+        inputStaticIPView = new AlertView("设置静态IP", null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Object o, int position) {
+                if (position == 0) {
+                    if (ipCheckBox.isChecked()) {
+                        if (RegexUtils.isIP(et_Static_ip.getText().toString()) ||
+                                RegexUtils.isIP(et_Static_mask.getText().toString()) ||
+                                RegexUtils.isIP(et_Static_gateway.getText().toString()) ||
+                                RegexUtils.isIP(et_Static_dns1.getText().toString()) ||
+                                RegexUtils.isIP(et_Static_dns2.getText().toString())) {
+                            staticIP.put("Static_ip", et_Static_ip.getText().toString());
+                            staticIP.put("Static_mask", et_Static_mask.getText().toString());
+                            staticIP.put("Static_gateway", et_Static_gateway.getText().toString());
+                            staticIP.put("Static_dns1", et_Static_dns1.getText().toString());
+                            staticIP.put("Static_dns2", et_Static_dns2.getText().toString());
+                            staticIP.put("state", true);
+                            AppInit.getMyManager().setEthIPAddress(et_Static_ip.getText().toString(),
+                                    et_Static_mask.getText().toString(), et_Static_gateway.getText().toString(),
+                                    et_Static_dns1.getText().toString(), et_Static_dns2.getText().toString());
+                            ToastUtils.showLong("5秒后重新开机保存设置");
+                            Observable.timer(5, TimeUnit.SECONDS)
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Observer<Long>() {
+                                        @Override
+                                        public void onSubscribe(@NonNull Disposable d) {
+
+                                        }
+
+                                        @Override
+                                        public void onNext(@NonNull Long aLong) {
+                                            pp.close_Camera();
+                                            AppInit.getMyManager().reboot();
+                                        }
+
+                                        @Override
+                                        public void onError(@NonNull Throwable e) {
+
+                                        }
+
+                                        @Override
+                                        public void onComplete() {
+
+                                        }
+                                    });
+                        } else {
+                            ToastUtils.showLong("IP地址输入格式有误，请重试");
+                        }
+                    } else {
+                        staticIP.put("state", false);
+                        ToastUtils.showLong("设置DHCP模式失败，请前往设置界面进行设置");
+                    }
+                }
+            }
+        });
+        inputStaticIPView.addExtView(ipview);
+    }
+
+    private void setGesture() {
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
         gestures.addOnGesturePerformedListener(new GestureOverlayView.OnGesturePerformedListener() {
@@ -276,7 +378,47 @@ public class MainActivity extends FunctionActivity {
         }
     }
 
-
+    @Override
+    public void onOptionType(Button view, int type) {
+        personWindow.dismiss();
+        if (type == 1) {
+            Bitmap mBitmap = null;
+            etName.setText(config.getString("ServerId"));
+            dev_name.setText(config.getString("devid"));
+            ip_name.setText(NetworkUtils.getIPAddress(true));
+            DAInfo di = new DAInfo();
+            try {
+                di.setId(config.getString("devid"));
+                di.setName(ins_type.getName());
+                di.setModel(ins_type.getModel());
+                di.setSoftwareVer(AppUtils.getAppVersionName());
+                di.setProject(ins_type.getProject());
+                mBitmap = di.daInfoBmp();
+            } catch (Exception ex) {
+            }
+            if (mBitmap != null) {
+                QRview.setImageBitmap(mBitmap);
+            }
+            inputServerView.show();
+        } else if (type == 2) {
+            if ((staticIP.getBoolean("state"))) {
+                et_Static_ip.setText(staticIP.getString("Static_ip"));
+                et_Static_gateway.setText(staticIP.getString("Static_gateway"));
+                et_Static_mask.setText(staticIP.getString("Static_mask"));
+                et_Static_dns1.setText(staticIP.getString("Static_dns1"));
+                et_Static_dns2.setText(staticIP.getString("Static_dns2"));
+                ipCheckBox.setChecked(true);
+            }
+            if (ipCheckBox.isChecked()) {
+                et_Static_ip.setEnabled(true);
+                et_Static_mask.setEnabled(true);
+                et_Static_gateway.setEnabled(true);
+                et_Static_dns1.setEnabled(true);
+                et_Static_dns2.setEnabled(true);
+            }
+            inputStaticIPView.show();
+        }
+    }
 
     void openService() {
         intent = new Intent(MainActivity.this, SwitchService.class);
@@ -357,7 +499,7 @@ public class MainActivity extends FunctionActivity {
             pp.capture();
             idp.stopReadCard();
         } else {
-            connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
 
                 @Override
                 public void onResponse(String response) {
@@ -396,7 +538,7 @@ public class MainActivity extends FunctionActivity {
         photo = bitmapChange(bmp, 0.3f, 0.3f);
         if (persontype.equals("1")) {
             if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
-                if (type.isFace()) {
+                if (ins_type.isFace()) {
                     face_upData();
                 } else {
                     noface_upData();
@@ -414,8 +556,7 @@ public class MainActivity extends FunctionActivity {
     }
 
     private void checkRecord() {
-
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
                 config.getString("ServerId"),
                 new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
@@ -444,7 +585,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=faceRecognition" + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=faceRecognition" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -558,7 +699,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         headphoto.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=persionRecord"+ "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=persionRecord" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -575,7 +716,7 @@ public class MainActivity extends FunctionActivity {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         person1.getPhoto().compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
         upPersonRecordData.setPic(outputStream.toByteArray());
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=samePsonFaceRecognition"+ "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=samePsonFaceRecognition" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
@@ -584,13 +725,13 @@ public class MainActivity extends FunctionActivity {
                         idp.readCard();
                         if (response != null) {
                             if (response.startsWith("true")) {
-                                connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
+                                connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                         config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
                                         new ServerConnectionUtil.Callback() {
                                             @Override
                                             public void onResponse(String response) {
-                                                if(response!=null){
+                                                if (response != null) {
                                                     tips.setText("开门记录已上传到服务器");
                                                 }
                                             }
@@ -611,15 +752,14 @@ public class MainActivity extends FunctionActivity {
         }
     }
 
-
     private void noface_openDoorUpData() {
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid"),
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"),
                 new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), person2.getPhoto()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
-                        if(response!=null){
+                        if (response != null) {
                             tips.setText("开门记录已上传到服务器");
                             pp.setDisplay(surfaceView.getHolder());
                             idp.readCard();
