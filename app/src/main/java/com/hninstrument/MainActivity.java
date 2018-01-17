@@ -63,9 +63,13 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -185,7 +189,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 
-
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                 .observeOn(AndroidSchedulers.mainThread())
@@ -217,6 +220,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         setGesture();
         ServerInput();
         IpviewInit();
+        /*reboot();*/
     }
 
     private void ServerInput() {
@@ -782,5 +786,28 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         Matrix matrix = new Matrix();
         matrix.postScale(width, height);
         return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+    }
+
+    private void reboot(){
+        long daySpan = 24 * 60 * 60 * 1000;
+        // 规定的每天时间15:33:30运行
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:30:00'");
+        // 首次运行时间
+        try{
+            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if(System.currentTimeMillis() > startTime.getTime())
+                startTime = new Date(startTime.getTime() + daySpan);
+            Timer t = new Timer();
+            TimerTask task = new TimerTask(){
+                @Override
+                public void run() {
+                    // 要执行的代码
+                    AppInit.getMyManager().reboot();
+                }
+            };
+            t.scheduleAtFixedRate(task, startTime,daySpan);
+        }catch (ParseException e){
+            e.printStackTrace();
+        }
     }
 }
