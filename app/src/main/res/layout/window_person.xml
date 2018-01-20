@@ -21,7 +21,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="设     置"
-                android:textColor="@color/primary_text"
+                android:textColor="@color/divider"
                 android:textSize="18sp"
                 android:layout_marginLeft="75dp"
                 android:layout_marginTop="8dp"/>
