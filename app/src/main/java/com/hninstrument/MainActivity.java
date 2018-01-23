@@ -788,26 +788,4 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
     }
 
-    private void reboot(){
-        long daySpan = 24 * 60 * 60 * 1000;
-        // 规定的每天时间15:33:30运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:30:00'");
-        // 首次运行时间
-        try{
-            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if(System.currentTimeMillis() > startTime.getTime())
-                startTime = new Date(startTime.getTime() + daySpan);
-            Timer t = new Timer();
-            TimerTask task = new TimerTask(){
-                @Override
-                public void run() {
-                    // 要执行的代码
-                    AppInit.getMyManager().reboot();
-                }
-            };
-            t.scheduleAtFixedRate(task, startTime,daySpan);
-        }catch (ParseException e){
-            e.printStackTrace();
-        }
-    }
 }

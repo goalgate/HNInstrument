@@ -32,8 +32,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -151,7 +154,7 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                     });
         }
-
+        reboot();
     }
 
     private void autoUpdate() {
@@ -326,6 +329,28 @@ public class SwitchService extends Service implements ISwitchView {
             return true;
         } else {
             return false;
+        }
+    }
+    private void reboot(){
+        long daySpan = 24 * 60 * 60 * 1000 * 2;
+        // 规定的每天时间，某时刻运行
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
+        // 首次运行时间
+        try{
+            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if(System.currentTimeMillis() > startTime.getTime())
+                startTime = new Date(startTime.getTime() + daySpan);
+            Timer t = new Timer();
+            TimerTask task = new TimerTask(){
+                @Override
+                public void run() {
+                    // 要执行的代码
+                    AppInit.getMyManager().reboot();
+                }
+            };
+            t.scheduleAtFixedRate(task, startTime,daySpan);
+        }catch (ParseException e){
+            e.printStackTrace();
         }
     }
 }
