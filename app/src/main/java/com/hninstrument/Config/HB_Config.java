@@ -4,7 +4,7 @@ package com.hninstrument.Config;
  * Created by zbsz on 2017/12/19.
  */
 
-public class    HB_Config extends BaseConfig {
+public class HB_Config extends BaseConfig {
     @Override
     public boolean isTemHum() {
         return true;
@@ -53,5 +53,10 @@ public class    HB_Config extends BaseConfig {
     @Override
     public String getProject() {
         return "HBFB";
+    }
+
+    @Override
+    public String getPower() {
+        return "12-18V 2A";
     }
 }

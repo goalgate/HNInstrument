@@ -137,37 +137,37 @@ public class ServerConnectionUtil {
         return result;
     }
 
-    private String sendPost(String baseUrl,String server) {
-        String result = null;
-        try {
-            safeCheck.setURL(server);
-            URL url = new URL(baseUrl+"&pass=" + safeCheck.getPass(config.getString("devid")));
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(TIME_OUT);
-            conn.setConnectTimeout(TIME_OUT);
-            conn.setDoInput(true);  //允许输入流
-            conn.setDoOutput(true); //允许输出流
-            conn.setUseCaches(false);  //不允许使用缓存
-            conn.setRequestMethod("POST");  //请求方式
-            conn.setRequestProperty("Charset", CHARSET);  //设置编码
-            conn.setRequestProperty("connection", "keep-alive");
-            conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
-            if (200 == conn.getResponseCode()) {
-                in = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
-                    result = line;
-                }
-            } else {
-                result = null;
-            }
+            private String sendPost(String baseUrl,String server) {
+                String result = null;
+                try {
+                    safeCheck.setURL(server);
+                    URL url = new URL(baseUrl+"&pass=" + safeCheck.getPass(config.getString("devid")));
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setReadTimeout(TIME_OUT);
+                    conn.setConnectTimeout(TIME_OUT);
+                    conn.setDoInput(true);  //允许输入流
+                    conn.setDoOutput(true); //允许输出流
+                    conn.setUseCaches(false);  //不允许使用缓存
+                    conn.setRequestMethod("POST");  //请求方式
+                    conn.setRequestProperty("Charset", CHARSET);  //设置编码
+                    conn.setRequestProperty("connection", "keep-alive");
+                    conn.setRequestProperty("Content-Type", CONTENT_TYPE + ";boundary=" + BOUNDARY);
+                    if (200 == conn.getResponseCode()) {
+                        in = new BufferedReader(
+                                new InputStreamReader(conn.getInputStream()));
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            result = line;
+                        }
+                    } else {
+                        result = null;
+                    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
 
     private String sendPost(String baseUrl,String server, byte[] bs) {
         String result = null;

@@ -142,8 +142,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         personWindow = new AddPersonWindow(this);
         personWindow.setOptionTypeListener(this);
         personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
-
-
     }
 
     @BindView(R.id.gestures_overlay)
@@ -260,17 +258,13 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         inputServerView.addExtView(extView1);
     }
 
+    long count = 5;
     private AlertView inputStaticIPView;
     EditText et_Static_ip;
-
     EditText et_Static_mask;
-
     EditText et_Static_gateway;
-
     EditText et_Static_dns1;
-
     EditText et_Static_dns2;
-
     CheckBox ipCheckBox;
 
     private void IpviewInit() {
@@ -315,11 +309,18 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             staticIP.put("Static_dns1", et_Static_dns1.getText().toString());
                             staticIP.put("Static_dns2", et_Static_dns2.getText().toString());
                             staticIP.put("state", true);
-                            AppInit.getMyManager().setEthIPAddress(et_Static_ip.getText().toString(),
-                                    et_Static_mask.getText().toString(), et_Static_gateway.getText().toString(),
+                            AppInit.getMyManager().setStaticEthIPAddress/*ssetEthIPAddress*/(et_Static_ip.getText().toString(),
+                                    et_Static_gateway.getText().toString(), et_Static_mask.getText().toString(),
                                     et_Static_dns1.getText().toString(), et_Static_dns2.getText().toString());
-                            ToastUtils.showLong("5秒后重新开机保存设置");
-                            Observable.timer(5, TimeUnit.SECONDS)
+                            ToastUtils.showLong("静态IP已设置");
+                            Observable.interval(0, 1, TimeUnit.SECONDS)
+                                    .take(count + 1)
+                                    .map(new Function<Long, Long>() {
+                                        @Override
+                                        public Long apply(@NonNull Long aLong) throws Exception {
+                                            return count - aLong;
+                                        }
+                                    })
                                     .subscribeOn(Schedulers.io())
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe(new Observer<Long>() {
@@ -330,8 +331,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
                                         @Override
                                         public void onNext(@NonNull Long aLong) {
-                                            pp.close_Camera();
-                                            AppInit.getMyManager().reboot();
+                                            ToastUtils.showLong(aLong + "秒后重新开机保存设置");
                                         }
 
                                         @Override
@@ -341,15 +341,53 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
                                         @Override
                                         public void onComplete() {
-
+                                            pp.close_Camera();
+                                            AppInit.getMyManager().reboot();
                                         }
                                     });
                         } else {
                             ToastUtils.showLong("IP地址输入格式有误，请重试");
                         }
                     } else {
-                        staticIP.put("state", false);
-                        ToastUtils.showLong("设置DHCP模式失败，请前往设置界面进行设置");
+                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(32,40))>=20171212) {
+                            AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
+                            ToastUtils.showLong("已设置为动态IP获取模式");
+                            staticIP.put("state", false);
+                            Observable.interval(0, 1, TimeUnit.SECONDS)
+                                    .take(count + 1)
+                                    .map(new Function<Long, Long>() {
+                                        @Override
+                                        public Long apply(@NonNull Long aLong) throws Exception {
+                                            return count - aLong;
+                                        }
+                                    })
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Observer<Long>() {
+                                        @Override
+                                        public void onSubscribe(@NonNull Disposable d) {
+
+                                        }
+
+                                        @Override
+                                        public void onNext(@NonNull Long aLong) {
+                                            ToastUtils.showLong(aLong + "秒后重新开机保存设置");
+                                        }
+
+                                        @Override
+                                        public void onError(@NonNull Throwable e) {
+
+                                        }
+
+                                        @Override
+                                        public void onComplete() {
+                                            pp.close_Camera();
+                                            AppInit.getMyManager().reboot();
+                                        }
+                                    });
+                        }else{
+                            ToastUtils.showLong("该固件版本过低，无法完成到动态获取以太网的转变");
+                        }
                     }
                 }
             }
@@ -395,6 +433,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 di.setId(config.getString("devid"));
                 di.setName(ins_type.getName());
                 di.setModel(ins_type.getModel());
+                di.setPower(ins_type.getPower());
                 di.setSoftwareVer(AppUtils.getAppVersionName());
                 di.setProject(ins_type.getProject());
                 mBitmap = di.daInfoBmp();
@@ -405,13 +444,17 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             }
             inputServerView.show();
         } else if (type == 2) {
-            if ((staticIP.getBoolean("state"))) {
+            if (staticIP.getBoolean("state")) {
+                ipCheckBox.setChecked(true);
+            } else {
+                ipCheckBox.setChecked(false);
+            }
+            if (!TextUtils.isEmpty(staticIP.getString("Static_ip"))) {
                 et_Static_ip.setText(staticIP.getString("Static_ip"));
                 et_Static_gateway.setText(staticIP.getString("Static_gateway"));
                 et_Static_mask.setText(staticIP.getString("Static_mask"));
                 et_Static_dns1.setText(staticIP.getString("Static_dns1"));
                 et_Static_dns2.setText(staticIP.getString("Static_dns2"));
-                ipCheckBox.setChecked(true);
             }
             if (ipCheckBox.isChecked()) {
                 et_Static_ip.setEnabled(true);
@@ -728,7 +771,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
                         if (response != null) {
-                            if (response.startsWith("true")) {
+                            if (response.startsWith("true") && (int) Double.parseDouble(response.substring(5, response.length())) < 60) {//这里要改
                                 connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                         config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
@@ -741,7 +784,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             }
                                         });
                             } else {
-                                tips.setText("开门记录数据：上传失败");
+                                tips.setText("开门记录数据：上传失败，请注意是否单人双卡操作");
                             }
                         } else {
                             tips.setText("开门记录数据：无法连接到服务器");

@@ -4,9 +4,10 @@ import android.app.Application;
 import android.content.Context;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
-import com.hninstrument.Config.HB_Config;
+import com.hninstrument.Config.GZ_Config;
+import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Config.HN_Config;
-import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
+import com.hninstrument.Config.XA_Config;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
 import com.ys.myapi.MyManager;
@@ -60,7 +61,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HN_Config();
+        InstrumentConfig = new GZ_Config();
         manager = MyManager.getInstance(this);
 
         Utils.init(getContext());

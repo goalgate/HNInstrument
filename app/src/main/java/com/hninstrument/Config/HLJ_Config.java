@@ -1,15 +1,10 @@
 package com.hninstrument.Config;
 
 /**
- * Created by zbsz on 2017/12/19.
+ * Created by zbsz on 2018/1/24.
  */
 
-public class HN_Config extends BaseConfig {
-
-    @Override
-    public boolean isFace() {
-        return true;
-    }
+public class HLJ_Config extends BaseConfig {
 
     @Override
     public boolean isTemHum() {
@@ -17,13 +12,13 @@ public class HN_Config extends BaseConfig {
     }
 
     @Override
-    public String getPersonInfoPrefix() {
-        return "da_gzmb_persionInfo?";
+    public boolean isFace() {
+        return false;
     }
 
     @Override
-    public String getServerId() {
-        return "http://124.172.232.87:8802/";
+    public String getDev_prefix() {
+        return "800100";
     }
 
     @Override
@@ -32,8 +27,13 @@ public class HN_Config extends BaseConfig {
     }
 
     @Override
-    public String getDev_prefix() {
-        return "800200";
+    public String getServerId() {
+        return "http://221.207.254.111:100/";
+    }
+
+    @Override
+    public String getPersonInfoPrefix() {
+        return "da_gzmb_persionInfo?";
     }
 
     @Override
@@ -43,21 +43,21 @@ public class HN_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID";
+        return "CBDI-ID-C";
     }
 
     @Override
     public String getName() {
-        return "数据采集器";
+        return "防爆采集器";
     }
 
     @Override
     public String getProject() {
-        return "HNJD";
+        return "HLJFB";
     }
 
     @Override
     public String getPower() {
-        return "12V 2A";
+        return "12-18V 2A";
     }
 }

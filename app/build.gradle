@@ -58,5 +58,5 @@ dependencies {
     compile 'org.greenrobot:greendao:3.2.2'
     compile files('libs/BASE64.jar')
     compile 'cn.yipianfengye.android:zxing-library:2.2'
-    compile files('libs/rk3128api.jar')
+    compile files('libs/rkapi.jar')
 }

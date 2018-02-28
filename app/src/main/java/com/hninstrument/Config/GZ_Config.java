@@ -1,11 +1,10 @@
 package com.hninstrument.Config;
 
 /**
- * Created by zbsz on 2017/12/19.
+ * Created by zbsz on 2018/2/28.
  */
 
-public class HN_Config extends BaseConfig {
-
+public class GZ_Config extends BaseConfig {
     @Override
     public boolean isFace() {
         return true;
@@ -33,7 +32,7 @@ public class HN_Config extends BaseConfig {
 
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
 
     @Override
@@ -43,21 +42,21 @@ public class HN_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID";
+        return "CBDI-ID-C";
     }
 
     @Override
     public String getName() {
-        return "数据采集器";
+        return "防爆采集器";
     }
 
     @Override
     public String getProject() {
-        return "HNJD";
+        return "GZFB";
     }
 
     @Override
     public String getPower() {
-        return "12V 2A";
+        return "12-18V 2A";
     }
 }

@@ -26,4 +26,6 @@ public abstract class BaseConfig {
 
     public abstract String getProject();
 
+    public abstract String getPower();
+
 }
