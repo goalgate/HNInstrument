@@ -22,7 +22,7 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://124.172.232.87:8802/";
+        return "http://192.168.11.125:7003/";
     }
 
     @Override

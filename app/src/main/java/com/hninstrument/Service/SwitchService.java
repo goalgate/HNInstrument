@@ -91,7 +91,7 @@ public class SwitchService extends Service implements ISwitchView {
         sp.switch_Open();
         sp.SwitchPresenterSetView(this);
         EventBus.getDefault().register(this);
-        lock = new Lock(new State_Lockup(sp));
+        lock = Lock.getInstance(new State_Lockup(sp));
         dis_testNet = Observable.interval(5, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -171,7 +171,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void updata(){
-        connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=1",
+        connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=2",
                 config.getString("ServerId"),
                 new ServerConnectionUtil.Callback() {
             @Override
@@ -181,9 +181,9 @@ public class SwitchService extends Service implements ISwitchView {
                     String[] idList = response.split("\\|");
                     if (idList[0].length() == 18) {
                         for (String id : idList) {
-                            SPUtils.getInstance("personData").put(id, "1");
+                            SPUtils.getInstance("personData").put(id, "2");
                         }
-                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=2",
+                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=1",
                                 config.getString("ServerId"),new ServerConnectionUtil.Callback() {
 
                             @Override
@@ -191,15 +191,15 @@ public class SwitchService extends Service implements ISwitchView {
                                 String[] idList = response.split("\\|");
                                 if (idList[0].length() == 18) {
                                     for (String id : idList) {
-                                        SPUtils.getInstance("personData").put(id, "2");
+                                        SPUtils.getInstance("personData").put(id, "1");
                                     }
                                 } else {
-                                    ToastUtils.showLong("巡检员更新错误或并无巡检员");
+                                    ToastUtils.showLong("仓管员更新错误或并无巡检员");
                                 }
                             }
                         });
                     } else {
-                        ToastUtils.showLong("仓管员更新错误或并无仓管员");
+                        ToastUtils.showLong("巡检员更新错误或并无仓管员");
                     }
                 } else {
                     ToastUtils.showLong("连接服务器错误");

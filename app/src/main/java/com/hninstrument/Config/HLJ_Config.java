@@ -13,7 +13,7 @@ public class HLJ_Config extends BaseConfig {
 
     @Override
     public boolean isFace() {
-        return false;
+        return true;
     }
 
     @Override
@@ -58,6 +58,6 @@ public class HLJ_Config extends BaseConfig {
 
     @Override
     public String getPower() {
-        return "12-18V 2A";
+        return  "12-18V 2A";
     }
 }

@@ -48,11 +48,14 @@ import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Service.SwitchService;
+import com.hninstrument.State.LockState.Lock;
+import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.OperationState.No_one_OperateState;
 import com.hninstrument.State.OperationState.One_man_OperateState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.DAInfo;
+import com.hninstrument.Tools.NetInfo;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
@@ -144,6 +147,60 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
     }
 
+    private AlertView messageAlert;
+    private TextView msg_daid;
+    private TextView msg_ip;
+    private TextView msg_mac;
+    private TextView msg_software;
+    private TextView msg_ipmode;
+    private TextView msg_network;
+    private TextView msg_iccard;
+    private TextView msg_lockState;
+    private void messageInit() {
+        ViewGroup messageView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.message_form, null);
+        msg_daid = (TextView) messageView.findViewById(R.id.msg_daid);
+        msg_ip = (TextView) messageView.findViewById(R.id.msg_ip);
+        msg_mac = (TextView) messageView.findViewById(R.id.msg_mac);
+        msg_software = (TextView) messageView.findViewById(R.id.msg_software);
+        msg_ipmode = (TextView) messageView.findViewById(R.id.msg_ipmode);
+        msg_network = (TextView) messageView.findViewById(R.id.msg_network);
+        msg_iccard = (TextView) messageView.findViewById(R.id.msg_iccard);
+        msg_lockState = (TextView) messageView.findViewById(R.id.msg_lockState);
+        messageAlert = new AlertView("信息显示", null, null, new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Object o, int position) {
+
+            }
+        });
+        messageAlert.addExtView(messageView);
+    }
+
+    @OnClick(R.id.iv_lock)
+    void showMessage(){
+        msg_daid.setText("设备ID：" + config.getString("devid"));
+        msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
+        msg_mac.setText("MAC地址：" + new NetInfo().getMac());
+        msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
+        if (staticIP.getBoolean("state")) {
+            msg_ipmode.setText("当前以太网为静态IP模式");
+        } else {
+            msg_ipmode.setText("当前以太网为动态IP获取模式");
+        }
+        if (NetworkUtils.isConnected()) {
+            msg_network.setText("连接网络成功");
+        } else {
+            msg_network.setText("连接网络失败，请检查网线连接状态");
+        }
+        msg_iccard.setText("请放置身份证进行判断");
+
+        if (Lock.getInstance().getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
+            msg_lockState.setText("仓库处于上锁状态");
+        } else {
+            msg_lockState.setText("仓库处于解锁状态");
+        }
+        messageAlert.show();
+    }
+
     @BindView(R.id.gestures_overlay)
     GestureOverlayView gestures;
 
@@ -218,6 +275,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         setGesture();
         ServerInput();
         IpviewInit();
+        messageInit();
+
         /*reboot();*/
     }
 
@@ -266,7 +325,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     EditText et_Static_dns1;
     EditText et_Static_dns2;
     CheckBox ipCheckBox;
-
     private void IpviewInit() {
         ViewGroup ipview = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputstaticip_form, null);
         ipCheckBox = (CheckBox) ipview.findViewById(R.id.ip_checkBox);
@@ -309,7 +367,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             staticIP.put("Static_dns1", et_Static_dns1.getText().toString());
                             staticIP.put("Static_dns2", et_Static_dns2.getText().toString());
                             staticIP.put("state", true);
-                            AppInit.getMyManager().setStaticEthIPAddress/*ssetEthIPAddress*/(et_Static_ip.getText().toString(),
+                            AppInit.getMyManager().setStaticEthIPAddress(et_Static_ip.getText().toString(),
                                     et_Static_gateway.getText().toString(), et_Static_mask.getText().toString(),
                                     et_Static_dns1.getText().toString(), et_Static_dns2.getText().toString());
                             ToastUtils.showLong("静态IP已设置");
@@ -547,7 +605,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             idp.stopReadCard();
         } else {
             connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-
                 @Override
                 public void onResponse(String response) {
                     if (response != null) {
