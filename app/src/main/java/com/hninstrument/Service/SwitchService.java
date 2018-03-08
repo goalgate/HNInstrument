@@ -1,7 +1,10 @@
 package com.hninstrument.Service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 
@@ -20,6 +23,8 @@ import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
+import com.hninstrument.MainActivity;
+import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
@@ -34,11 +39,14 @@ import org.json.JSONObject;
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import cbdi.log.Lg;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
@@ -53,6 +61,7 @@ import io.reactivex.schedulers.Schedulers;
 public class SwitchService extends Service implements ISwitchView {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
+    SimpleDateFormat check_formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private BaseConfig type = AppInit.getInstrumentConfig();
 
@@ -72,6 +81,8 @@ public class SwitchService extends Service implements ISwitchView {
 
     Disposable dis_TemHum;
 
+    Disposable dis_checkTime;
+
     Disposable dis_stateRecord;
 
     int last_mTemperature = 0;
@@ -84,6 +95,10 @@ public class SwitchService extends Service implements ISwitchView {
 
     boolean network_State = false;
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     @Override
     public void onCreate() {
@@ -153,6 +168,17 @@ public class SwitchService extends Service implements ISwitchView {
                             StateRecord();
                         }
                     });
+        }
+        if(type.getCheckTime()){
+            dis_checkTime = Observable.timer(30,TimeUnit.SECONDS).observeOn(Schedulers.io())
+                    .subscribe(new Consumer<Long>() {
+                        @Override
+                        public void accept(Long aLong) throws Exception {
+                            checkTime();
+                            replaceCheckTime();
+                        }
+                    });
+
         }
         reboot();
     }
@@ -331,6 +357,57 @@ public class SwitchService extends Service implements ISwitchView {
             return false;
         }
     }
+    Calendar c = Calendar.getInstance();
+    PendingIntent checkTime_pi;
+    private void checkTime(){
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkTime" + "&daid=" + config.getString("devid"),
+                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+                        Intent check_intent = new Intent(SwitchService.this, TimeCheckReceiver.class);
+                        check_intent.setAction("checkTime");
+                        if(response!=null){
+                            String[] timeArray = response.split(",");
+                            for (String time:timeArray){
+                                c.set(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE),Integer.parseInt(time.split(":")[0]),Integer.parseInt(time.split(":")[1]),00); //当前时间
+                                c.add(Calendar.MINUTE,-5);
+                                if(c.getTimeInMillis()> System.currentTimeMillis()){
+                                    check_intent.putExtra("time",check_formatter.format(c.getTimeInMillis()));
+                                    checkTime_pi = PendingIntent.getBroadcast(SwitchService.this, new Random().nextInt(),check_intent ,0);
+                                    Lg.e("时间",check_formatter.format(c.getTimeInMillis()));
+                                    am.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), checkTime_pi);
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void replaceCheckTime(){
+        long daySpan = 24 * 60 * 60 * 1000;
+        // 规定的每天时间，某时刻运行
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '24:00:00'");
+        // 首次运行时间
+        try{
+            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if(System.currentTimeMillis() > startTime.getTime())
+                startTime = new Date(startTime.getTime() + daySpan);
+            Timer t = new Timer();
+            TimerTask task = new TimerTask(){
+                @Override
+                public void run() {
+                    // 要执行的代码
+                    checkTime();
+                    Lg.e("信息提示：","重置巡检时间");
+                }
+            };
+            t.scheduleAtFixedRate(task, startTime,daySpan);
+        }catch (ParseException e){
+            e.printStackTrace();
+        }
+    }
+
     private void reboot(){
         long daySpan = 24 * 60 * 60 * 1000 * 2;
         // 规定的每天时间，某时刻运行

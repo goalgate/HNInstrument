@@ -60,4 +60,9 @@ public class XA_Config extends BaseConfig {
     public String getPower() {
         return "12V 2A";
     }
+
+    @Override
+    public boolean getCheckTime() {
+        return false;
+    }
 }

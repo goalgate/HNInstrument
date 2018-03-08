@@ -20,9 +20,10 @@
         </activity>
         <activity android:name=".StartActivity"></activity>
         <activity android:name=".MainActivity"></activity>
-
-
         <service android:name=".Service.SwitchService"></service>
+        <receiver
+            android:name=".Receiver.TimeCheckReceiver">
+        </receiver>
 
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

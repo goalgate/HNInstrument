@@ -28,4 +28,6 @@ public abstract class BaseConfig {
 
     public abstract String getPower();
 
+    public abstract boolean getCheckTime();
+
 }

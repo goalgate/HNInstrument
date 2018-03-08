@@ -1,5 +1,7 @@
 package com.hninstrument;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.gesture.Gesture;
@@ -47,6 +49,7 @@ import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.EventBus.TemHumEvent;
+import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
@@ -79,6 +82,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cbdi.drv.card.CardInfoRk123x;
+import cbdi.log.Lg;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -156,6 +160,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     private TextView msg_network;
     private TextView msg_iccard;
     private TextView msg_lockState;
+
     private void messageInit() {
         ViewGroup messageView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.message_form, null);
         msg_daid = (TextView) messageView.findViewById(R.id.msg_daid);
@@ -175,8 +180,14 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         messageAlert.addExtView(messageView);
     }
 
+
+
+    Calendar c = Calendar.getInstance();
     @OnClick(R.id.iv_lock)
-    void showMessage(){
+    void showMessage() {
+        /*Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
+        checked.setAction("checked");
+        sendBroadcast(checked);*/
         msg_daid.setText("设备ID：" + config.getString("devid"));
         msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
         msg_mac.setText("MAC地址：" + new NetInfo().getMac());
@@ -216,16 +227,9 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     GestureLibrary mGestureLib;
 
-    private TextView dev_name;
-
-    private TextView ip_name;
-
     private EditText etName;
-
     private ImageView QRview;
-
     private AlertView inputServerView;
-
     String url;
 
     @Override
@@ -276,14 +280,11 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         ServerInput();
         IpviewInit();
         messageInit();
-
         /*reboot();*/
     }
 
     private void ServerInput() {
         ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
-        dev_name = (TextView) extView1.findViewById(R.id.dev_id);
-        ip_name = (TextView) extView1.findViewById(R.id.dev_ip);
         etName = (EditText) extView1.findViewById(R.id.server_input);
         QRview = (ImageView) extView1.findViewById(R.id.QRimage);
         inputServerView = new AlertView("服务器设置,软件版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, MainActivity.this, AlertView.Style.Alert, new OnItemClickListener() {
@@ -325,6 +326,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     EditText et_Static_dns1;
     EditText et_Static_dns2;
     CheckBox ipCheckBox;
+
     private void IpviewInit() {
         ViewGroup ipview = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputstaticip_form, null);
         ipCheckBox = (CheckBox) ipview.findViewById(R.id.ip_checkBox);
@@ -407,7 +409,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             ToastUtils.showLong("IP地址输入格式有误，请重试");
                         }
                     } else {
-                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(32,40))>=20171212) {
+                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(32, 40)) >= 20171212) {
                             AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
                             ToastUtils.showLong("已设置为动态IP获取模式");
                             staticIP.put("state", false);
@@ -443,7 +445,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             AppInit.getMyManager().reboot();
                                         }
                                     });
-                        }else{
+                        } else {
                             ToastUtils.showLong("该固件版本过低，无法完成到动态获取以太网的转变");
                         }
                     }
@@ -484,8 +486,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         if (type == 1) {
             Bitmap mBitmap = null;
             etName.setText(config.getString("ServerId"));
-            dev_name.setText(config.getString("devid"));
-            ip_name.setText(NetworkUtils.getIPAddress(true));
             DAInfo di = new DAInfo();
             try {
                 di.setId(config.getString("devid"));
@@ -576,64 +576,68 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     @Override
     public void onsetCardInfo(final CardInfoRk123x cardInfo) {
-        this.cardInfo = cardInfo;
-        tips.setText(cardInfo.name() + "刷卡中");
-        if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
-            if (getState(No_one_OperateState.class)) {
-                person1.setCardId(cardInfo.cardId());
-                person1.setName(cardInfo.name());
-            } else if (getState(One_man_OperateState.class)) {
-                person2.setCardId(cardInfo.cardId());
-                person2.setName(cardInfo.name());
-                if (person1.getCardId().equals(person2.getCardId())) {
-                    tips.setText("请不要连续输入同一个管理员的信息");
-                    return;
-                } else {
-                    if (checkChange != null) {
-                        checkChange.dispose();
-                    }
-                }
-            } else if (getState(Two_man_OperateState.class)) {
-                EventBus.getDefault().post(new CloseDoorEvent());
-                iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
-                tips.setText("已进入设防状态");
-            }
-            pp.capture();
-            idp.stopReadCard();
-        } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-            pp.capture();
-            idp.stopReadCard();
+        if (messageAlert.isShowing()) {
+            msg_iccard.setText("身份证号为："+cardInfo.cardId()+"身份证模块正常");
         } else {
-            connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                @Override
-                public void onResponse(String response) {
-                    if (response != null) {
-                        if (response.startsWith("true")) {
-                            if (response.split("\\|").length > 1) {
-                                persontype = response.split("\\|")[1];
-                                SPUtils.getInstance("personData").put(cardInfo.cardId(), persontype);
-                                if (persontype.equals("1")) {
-                                    if (getState(No_one_OperateState.class)) {
-                                        person1.setCardId(cardInfo.cardId());
-                                        person1.setName(cardInfo.name());
-                                    } else if (getState(One_man_OperateState.class)) {
-                                        person2.setCardId(cardInfo.cardId());
-                                        person2.setName(cardInfo.name());
+            this.cardInfo = cardInfo;
+            tips.setText(cardInfo.name() + "刷卡中");
+            if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
+                if (getState(No_one_OperateState.class)) {
+                    person1.setCardId(cardInfo.cardId());
+                    person1.setName(cardInfo.name());
+                } else if (getState(One_man_OperateState.class)) {
+                    person2.setCardId(cardInfo.cardId());
+                    person2.setName(cardInfo.name());
+                    if (person1.getCardId().equals(person2.getCardId())) {
+                        tips.setText("请不要连续输入同一个管理员的信息");
+                        return;
+                    } else {
+                        if (checkChange != null) {
+                            checkChange.dispose();
+                        }
+                    }
+                } else if (getState(Two_man_OperateState.class)) {
+                    EventBus.getDefault().post(new CloseDoorEvent());
+                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
+                    tips.setText("已进入设防状态");
+                }
+                pp.capture();
+                idp.stopReadCard();
+            } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
+                pp.capture();
+                idp.stopReadCard();
+            } else {
+                connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response != null) {
+                            if (response.startsWith("true")) {
+                                if (response.split("\\|").length > 1) {
+                                    persontype = response.split("\\|")[1];
+                                    SPUtils.getInstance("personData").put(cardInfo.cardId(), persontype);
+                                    if (persontype.equals("1")) {
+                                        if (getState(No_one_OperateState.class)) {
+                                            person1.setCardId(cardInfo.cardId());
+                                            person1.setName(cardInfo.name());
+                                        } else if (getState(One_man_OperateState.class)) {
+                                            person2.setCardId(cardInfo.cardId());
+                                            person2.setName(cardInfo.name());
+                                        }
                                     }
+                                    pp.capture();
+                                    idp.stopReadCard();
                                 }
+                            } else {
+                                persontype = "0";
                                 pp.capture();
                                 idp.stopReadCard();
                             }
                         } else {
-                            persontype = "0";
-                            pp.capture();
-                            idp.stopReadCard();
+                            tips.setText("人员身份查询：服务器上传出错");
                         }
-                    } else {
-                        tips.setText("人员身份查询：服务器上传出错");
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -660,6 +664,9 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     }
 
     private void checkRecord() {
+        Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
+        checked.setAction("checked");
+        sendBroadcast(checked);
         connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
                 config.getString("ServerId"),
                 new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),

@@ -1,5 +1,7 @@
 package com.hninstrument.Config;
 
+import okhttp3.internal.tls.TrustRootIndex;
+
 /**
  * Created by zbsz on 2018/2/28.
  */
@@ -58,5 +60,10 @@ public class GZ_Config extends BaseConfig {
     @Override
     public String getPower() {
         return "12-18V 2A";
+    }
+
+    @Override
+    public boolean getCheckTime() {
+        return true;
     }
 }

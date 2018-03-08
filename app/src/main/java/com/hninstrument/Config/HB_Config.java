@@ -59,4 +59,9 @@ public class HB_Config extends BaseConfig {
     public String getPower() {
         return "12-18V 2A";
     }
+
+    @Override
+    public boolean getCheckTime() {
+        return false;
+    }
 }
