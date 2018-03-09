@@ -214,14 +214,19 @@ public class SwitchService extends Service implements ISwitchView {
 
                             @Override
                             public void onResponse(String response) {
-                                String[] idList = response.split("\\|");
-                                if (idList[0].length() == 18) {
-                                    for (String id : idList) {
-                                        SPUtils.getInstance("personData").put(id, "1");
+                                if(response!=null){
+                                    String[] idList = response.split("\\|");
+                                    if (idList[0].length() == 18) {
+                                        for (String id : idList) {
+                                            SPUtils.getInstance("personData").put(id, "1");
+                                        }
+                                    } else {
+                                        ToastUtils.showLong("仓管员更新错误或并无巡检员");
                                     }
-                                } else {
-                                    ToastUtils.showLong("仓管员更新错误或并无巡检员");
+                                }else{
+                                    ToastUtils.showLong("连接服务器错误");
                                 }
+
                             }
                         });
                     } else {
@@ -387,7 +392,7 @@ public class SwitchService extends Service implements ISwitchView {
     private void replaceCheckTime(){
         long daySpan = 24 * 60 * 60 * 1000;
         // 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '24:00:00'");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '00:05:00'");
         // 首次运行时间
         try{
             Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
