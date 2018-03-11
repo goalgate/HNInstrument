@@ -61,6 +61,7 @@ import io.reactivex.schedulers.Schedulers;
 public class SwitchService extends Service implements ISwitchView {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
+
     SimpleDateFormat check_formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private BaseConfig type = AppInit.getInstrumentConfig();
@@ -174,7 +175,7 @@ public class SwitchService extends Service implements ISwitchView {
                     .subscribe(new Consumer<Long>() {
                         @Override
                         public void accept(Long aLong) throws Exception {
-                            checkTime();
+                            checkTime(false);
                             replaceCheckTime();
                         }
                     });
@@ -364,7 +365,8 @@ public class SwitchService extends Service implements ISwitchView {
     }
     Calendar c = Calendar.getInstance();
     PendingIntent checkTime_pi;
-    private void checkTime(){
+    private void checkTime(final boolean add){
+        Lg.e("提示","获取时间开始");
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkTime" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                     @Override
@@ -376,12 +378,18 @@ public class SwitchService extends Service implements ISwitchView {
                             String[] timeArray = response.split(",");
                             for (String time:timeArray){
                                 c.set(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE),Integer.parseInt(time.split(":")[0]),Integer.parseInt(time.split(":")[1]),00); //当前时间
+                                if(add){
+                                    c.add(Calendar.DATE,1);
+                                }
                                 c.add(Calendar.MINUTE,-5);
                                 if(c.getTimeInMillis()> System.currentTimeMillis()){
                                     check_intent.putExtra("time",check_formatter.format(c.getTimeInMillis()));
                                     checkTime_pi = PendingIntent.getBroadcast(SwitchService.this, new Random().nextInt(),check_intent ,0);
                                     Lg.e("时间",check_formatter.format(c.getTimeInMillis()));
                                     am.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), checkTime_pi);
+                                }
+                                if(add){
+                                    c.add(Calendar.DATE,-1);
                                 }
                             }
                         }
@@ -392,7 +400,7 @@ public class SwitchService extends Service implements ISwitchView {
     private void replaceCheckTime(){
         long daySpan = 24 * 60 * 60 * 1000;
         // 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '00:05:00'");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '23:55:00'");
         // 首次运行时间
         try{
             Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
@@ -403,7 +411,7 @@ public class SwitchService extends Service implements ISwitchView {
                 @Override
                 public void run() {
                     // 要执行的代码
-                    checkTime();
+                    checkTime(true);
                     Lg.e("信息提示：","重置巡检时间");
                 }
             };
@@ -416,7 +424,7 @@ public class SwitchService extends Service implements ISwitchView {
     private void reboot(){
         long daySpan = 24 * 60 * 60 * 1000 * 2;
         // 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '3:00:00'");
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
         // 首次运行时间
         try{
             Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
@@ -428,6 +436,7 @@ public class SwitchService extends Service implements ISwitchView {
                 public void run() {
                     // 要执行的代码
                     AppInit.getMyManager().reboot();
+                    Lg.e("信息提示：","重置巡检时间");
                 }
             };
             t.scheduleAtFixedRate(task, startTime,daySpan);

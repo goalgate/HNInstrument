@@ -19,11 +19,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".StartActivity"></activity>
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".MainActivity" android:launchMode="singleInstance"></activity>
         <service android:name=".Service.SwitchService"></service>
         <receiver
             android:name=".Receiver.TimeCheckReceiver">
         </receiver>
+      <!--  <receiver android:name=".Receiver.BootBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>-->
 
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

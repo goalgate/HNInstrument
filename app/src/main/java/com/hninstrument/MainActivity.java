@@ -181,13 +181,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     }
 
 
-
-    Calendar c = Calendar.getInstance();
     @OnClick(R.id.iv_lock)
     void showMessage() {
-        /*Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
-        checked.setAction("checked");
-        sendBroadcast(checked);*/
         msg_daid.setText("设备ID：" + config.getString("devid"));
         msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
         msg_mac.setText("MAC地址：" + new NetInfo().getMac());
@@ -235,6 +230,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Lg.e("mainactivity","oncreate");
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
@@ -541,7 +537,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().post(new ExitEvent());
-        stopService(intent);
+        //stopService(intent);
         disposableTips.dispose();
         EventBus.getDefault().unregister(this);
     }
