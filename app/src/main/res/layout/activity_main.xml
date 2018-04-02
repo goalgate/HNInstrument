@@ -44,7 +44,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="5dp"
             android:layout_toLeftOf="@id/tv_time"
             android:src="@drawable/ic_lockup" />
 
@@ -53,7 +53,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="5dp"
             android:layout_toLeftOf="@id/iv_lock"
             android:src="@drawable/non_wifi" />
 
@@ -64,7 +64,7 @@
             android:layout_centerVertical="true"
             android:textColor="@color/primary_light"
             android:layout_toLeftOf="@id/iv_network"
-            android:layout_marginRight="15dp"
+            android:layout_marginRight="5dp"
             android:textSize="25sp" />
 
         <ImageView
@@ -84,7 +84,7 @@
             android:layout_centerVertical="true"
             android:textColor="@color/primary_light"
             android:layout_toLeftOf="@id/iv_temp"
-            android:layout_marginRight="8dp"
+            android:layout_marginRight="2dp"
             android:textSize="25sp" />
 
         <ImageView
@@ -92,7 +92,7 @@
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:layout_centerVertical="true"
-            android:layout_marginRight="8dp"
+            android:layout_marginRight="5dp"
             android:layout_toLeftOf="@+id/tv_humid"
             android:src="@drawable/humidity" />
     </RelativeLayout>

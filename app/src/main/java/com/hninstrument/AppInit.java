@@ -7,9 +7,13 @@ import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GZ_Config;
 import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Config.HN_Config;
+import com.hninstrument.Config.HuBeiFB_Config;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Config.XA_Config;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
+import com.squareup.leakcanary.LeakCanary;
 import com.ys.myapi.MyManager;
 
 import org.greenrobot.greendao.database.Database;
@@ -53,15 +57,16 @@ public class AppInit extends Application {
 
         Lg.setIsSave(true);
 
- /*       if (LeakCanary.isInAnalyzerProcess(this)) {
+        if (LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
 
-        LeakCanary.install(this);*/
+        LeakCanary.install(this);
 
         instance = this;
 
-        InstrumentConfig = new GZ_Config();
+        InstrumentConfig = new HuBeiFB_Config();
+
         manager = MyManager.getInstance(this);
 
         Utils.init(getContext());

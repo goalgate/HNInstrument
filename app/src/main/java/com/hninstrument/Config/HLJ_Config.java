@@ -43,7 +43,7 @@ public class HLJ_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID-C";
+        return "CBDI-DA-01";
     }
 
     @Override

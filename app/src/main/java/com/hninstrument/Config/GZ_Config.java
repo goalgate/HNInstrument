@@ -24,7 +24,7 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://119.29.111.172:7001/";
+                return "http://119.29.111.172:7001/";
     }
 
     @Override
@@ -44,7 +44,7 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID-C";
+        return "CBDI-DA-01";
     }
 
     @Override
