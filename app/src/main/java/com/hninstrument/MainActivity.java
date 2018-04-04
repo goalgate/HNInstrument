@@ -573,7 +573,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onsetCardInfo(final CardInfoRk123x cardInfo) {
         if (messageAlert.isShowing()) {
-            msg_iccard.setText("身份证号为："+cardInfo.cardId()+"身份证模块正常");
+            msg_iccard.setText("身份证号为："+cardInfo.cardId());
         } else {
             this.cardInfo = cardInfo;
             tips.setText(cardInfo.name() + "刷卡中");

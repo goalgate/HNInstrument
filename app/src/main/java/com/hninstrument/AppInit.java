@@ -65,7 +65,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HuBeiFB_Config();
+        InstrumentConfig = new GZ_Config();
 
         manager = MyManager.getInstance(this);
 
