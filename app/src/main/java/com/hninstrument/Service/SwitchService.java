@@ -15,6 +15,7 @@ import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -330,6 +331,7 @@ public class SwitchService extends Service implements ISwitchView {
 
 
     private void alarmRecord() {
+        EventBus.getDefault().post(new AlarmEvent());
         if (network_State) {
             connectionUtil.post(config.getString("ServerId")+ type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"),new ServerConnectionUtil.Callback() {

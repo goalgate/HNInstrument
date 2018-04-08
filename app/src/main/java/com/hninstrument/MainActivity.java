@@ -44,6 +44,7 @@ import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -555,6 +556,11 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     public void onGetTemHumEvent(TemHumEvent event) {
         tv_temperature.setText(event.getTem() + "℃");
         tv_humidity.setText(event.getHum() + "%");
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetAlarmEvent(AlarmEvent event){
+        tips.setText("开门报警已被触发");
     }
 
 

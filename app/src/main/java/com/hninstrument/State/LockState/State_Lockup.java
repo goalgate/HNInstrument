@@ -1,6 +1,8 @@
 package com.hninstrument.State.LockState;
 
 
+import com.hninstrument.AppInit;
+import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 
 /**
@@ -18,7 +20,9 @@ public class State_Lockup extends LockState {
     }
     @Override
     public void onHandle(Lock lock) {
-        sp.OutD9(true);
+        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HLJ_Config.class.getName())){
+            sp.OutD9(true);
+        }
         alarming = true;
     }
 

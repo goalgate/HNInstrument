@@ -65,7 +65,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new GZ_Config();
+        InstrumentConfig = new HLJ_Config();
 
         manager = MyManager.getInstance(this);
 
