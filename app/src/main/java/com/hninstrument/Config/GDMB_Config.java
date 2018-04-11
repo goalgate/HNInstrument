@@ -1,18 +1,34 @@
 package com.hninstrument.Config;
 
 /**
- * Created by zbsz on 2018/3/27.
+ * Created by zbsz on 2018/4/10.
  */
 
-public class HuBeiWeiHua_Config extends BaseConfig{
+public class GDMB_Config extends BaseConfig {
+
     @Override
-    public boolean isTemHum() {
+    public boolean isFace() {
         return true;
     }
 
     @Override
-    public boolean isFace() {
+    public boolean isTemHum() {
         return false;
+    }
+
+    @Override
+    public String getPersonInfoPrefix() {
+        return "da_gzmb_persionInfo?";
+    }
+
+    @Override
+    public String getServerId() {
+        return "http://115.159.241.118:8009/";
+    }
+
+    @Override
+    public String getUpDataPrefix() {
+        return "da_gzmb_updata?";
     }
 
     @Override
@@ -21,23 +37,8 @@ public class HuBeiWeiHua_Config extends BaseConfig{
     }
 
     @Override
-    public String getUpDataPrefix() {
-        return "cjy_updata?";
-    }
-
-    @Override
-    public String getServerId() {
-        return "http://221.232.80.185/";
-    }
-
-    @Override
-    public String getPersonInfoPrefix() {
-        return "cjy_updata?";
-    }
-
-    @Override
     public int getCheckOnlineTime() {
-        return 10;
+        return 60;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class HuBeiWeiHua_Config extends BaseConfig{
 
     @Override
     public String getProject() {
-        return "HBWH";
+        return "GDMB";
     }
 
     @Override

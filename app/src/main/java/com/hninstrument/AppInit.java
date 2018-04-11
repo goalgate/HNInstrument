@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.GZ_Config;
 import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Config.HN_Config;
@@ -65,7 +66,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HLJ_Config();
+        InstrumentConfig = new HuBeiWeiHua_Config();
 
         manager = MyManager.getInstance(this);
 
