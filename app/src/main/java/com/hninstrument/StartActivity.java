@@ -9,6 +9,8 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Tools.AssetsUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -49,7 +51,8 @@ public class StartActivity extends Activity {
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
             StartActivity.this.finish();
             ToastUtils.showLong("设备ID设置成功");
-            copyFilesToSdCard();
+            //copyFilesToSdCard();
+            AssetsUtils.getInstance(AppInit.getContext()).copyAssetsToSD("wltlib","wltlib");
         } else {
             ToastUtils.showLong("设备ID输入错误，请重试");
         }
@@ -63,7 +66,7 @@ public class StartActivity extends Activity {
         dev_prefix.setText(AppInit.getInstrumentConfig().getDev_prefix());
     }
 
-    String SDCardPath = Environment.getExternalStorageDirectory() +"/";
+   /* String SDCardPath = Environment.getExternalStorageDirectory() +"/";
     private void copyFilesToSdCard() {
         copyFileOrDir(""); // copy all files in assets folder in my project
     }
@@ -129,8 +132,5 @@ public class StartActivity extends Activity {
             Lg.e("tag", "Exception in copyFile() "+e.toString());
         }
 
-    }
-
-
-
+    }*/
 }

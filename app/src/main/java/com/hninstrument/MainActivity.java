@@ -50,6 +50,7 @@ import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.EventBus.TemHumEvent;
+import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.LockState.Lock;
@@ -561,6 +562,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAlarmEvent(AlarmEvent event){
         tips.setText("开门报警已被触发");
+        //AppInit.getSpeaker().playText("开门报警已被触发");
     }
 
 
@@ -592,6 +594,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     person2.setName(cardInfo.name());
                     if (person1.getCardId().equals(person2.getCardId())) {
                         tips.setText("请不要连续输入同一个管理员的信息");
+                        //AppInit.getSpeaker().playText("请不要连续输入同一个管理员的信息");
                         return;
                     } else {
                         if (checkChange != null) {
@@ -602,6 +605,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     EventBus.getDefault().post(new CloseDoorEvent());
                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
                     tips.setText("已进入设防状态");
+                    //AppInit.getSpeaker().playText("已进入设防状态");
                 }
                 pp.capture();
                 idp.stopReadCard();
@@ -636,6 +640,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             }
                         } else {
                             tips.setText("人员身份查询：服务器上传出错");
+                          //  AppInit.getSpeaker().playText("服务器上传出错");
                         }
                     }
                 });
@@ -666,6 +671,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     }
 
     private void checkRecord() {
+        SwitchPresenter.getInstance().OutD9(false);
         Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
         checked.setAction("checked");
         sendBroadcast(checked);
@@ -684,11 +690,14 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         if (response != null) {
                             if (response.startsWith("true")) {
                                 tips.setText("巡检数据：巡检成功");
+                              //  AppInit.getSpeaker().playText("巡检成功");
                             } else {
                                 tips.setText("巡检数据：上传失败");
+                              //  AppInit.getSpeaker().playText("巡检数据上传失败");
                             }
                         } else {
                             tips.setText("巡检数据：无法连接到服务器");
+                           // AppInit.getSpeaker().playText("无法连接到服务器");
                         }
                     }
                 });
@@ -711,6 +720,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                     person1.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
                                     captured1.setImageBitmap(photo);
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person1.getFaceReconition());
+                                   // AppInit.getSpeaker().playText("打卡成功");
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
                                     Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
@@ -743,15 +753,18 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                     EventBus.getDefault().post(new PassEvent());
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
+                                    //AppInit.getSpeaker().playText("打卡成功");
                                     face_openDoorUpData();
                                 }
                             } else {
                                 tips.setText("仓管员数据：人脸识别结果" + response.substring(5, response.length()) + "，请重试");
+                                //AppInit.getSpeaker().playText("人脸识别不通过");
                                 pp.setDisplay(surfaceView.getHolder());
                                 idp.readCard();
                             }
                         } else {
                             tips.setText("仓管员数据：无法连接服务器");
+                           // AppInit.getSpeaker().playText("无法连接服务器");
                             pp.setDisplay(surfaceView.getHolder());
                             idp.readCard();
                         }
@@ -772,6 +785,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             photo = bitmapChange(photo, 3.3f, 5f);
             captured1.setImageBitmap(photo);
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
+          //  AppInit.getSpeaker().playText("打卡成功");
             pp.setDisplay(surfaceView.getHolder());
             idp.readCard();
             Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
@@ -804,6 +818,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             EventBus.getDefault().post(new PassEvent());
             iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
+           // AppInit.getSpeaker().playText("打卡成功");
             noface_openDoorUpData();
         }
     }
@@ -820,6 +835,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
                         tips.setText("未知人员信息已上传");
+                      //  AppInit.getSpeaker().playText("未知人员信息已上传");
                     }
                 });
 
@@ -846,14 +862,19 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             public void onResponse(String response) {
                                                 if (response != null) {
                                                     tips.setText("开门记录已上传到服务器");
+                                                }else{
+                                                    tips.setText("无法连接到服务器");
+                                                   //AppInit.getSpeaker().playText("无法连接到服务器");
                                                 }
                                             }
                                         });
                             } else {
-                                tips.setText("开门记录数据：上传失败，请注意是否单人双卡操作");
+                                tips.setText("上传失败，请注意是否单人双卡操作");
+                                //AppInit.getSpeaker().playText("数据上传失败，请注意是否单人双卡操作");
                             }
                         } else {
                             tips.setText("开门记录数据：无法连接到服务器");
+                            //AppInit.getSpeaker().playText("无法连接到服务器");
                         }
                     }
                 });
