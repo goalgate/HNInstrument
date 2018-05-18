@@ -302,6 +302,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                         if (response.startsWith("true")) {
                                             config.put("ServerId", url);
                                             ToastUtils.showLong("连接服务器成功");
+                                            iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
                                         } else {
                                             ToastUtils.showLong("设备验证错误");
                                         }

@@ -207,7 +207,7 @@ public class SwitchService extends Service implements ISwitchView {
                 if (response != null) {
                     SPUtils.getInstance("personData").clear();
                     String[] idList = response.split("\\|");
-                    if (idList[0].length() == 18) {
+                    if (idList.length > 0) {
                         for (String id : idList) {
                             SPUtils.getInstance("personData").put(id, "2");
                         }
@@ -217,8 +217,9 @@ public class SwitchService extends Service implements ISwitchView {
                             @Override
                             public void onResponse(String response) {
                                 if(response!=null){
+
                                     String[] idList = response.split("\\|");
-                                    if (idList[0].length() == 18) {
+                                    if (idList.length >0) {
                                         for (String id : idList) {
                                             SPUtils.getInstance("personData").put(id, "1");
                                         }
