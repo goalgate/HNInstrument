@@ -182,17 +182,20 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         messageAlert.addExtView(messageView);
     }
 
-
+    private String STATICIP = "StaticIp";
+    private String DHCP = "DHCP";
     @OnClick(R.id.iv_lock)
     void showMessage() {
         msg_daid.setText("设备ID：" + config.getString("devid"));
         msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
         msg_mac.setText("MAC地址：" + new NetInfo().getMac());
         msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
-        if (staticIP.getBoolean("state")) {
-            msg_ipmode.setText("当前以太网为静态IP模式");
-        } else {
+        if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
             msg_ipmode.setText("当前以太网为动态IP获取模式");
+        } else if(STATICIP .equals(AppInit.getMyManager().getEthMode())){
+            msg_ipmode.setText("当前以太网为静态IP获取模式");
+        } else {
+            msg_ipmode.setText("当前固件版本过低，无法获取详细信息");
         }
         if (NetworkUtils.isConnected()) {
             msg_network.setText("连接网络成功");
@@ -542,6 +545,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         EventBus.getDefault().post(new ExitEvent());
         //stopService(intent);
         disposableTips.dispose();
+        AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
         EventBus.getDefault().unregister(this);
     }
 

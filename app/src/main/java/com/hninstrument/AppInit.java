@@ -79,10 +79,11 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeiBei_Config();
+        InstrumentConfig = new SH_Config();
 
         manager = MyManager.getInstance(this);
 
+        manager.bindAIDLService(this);
         Utils.init(getContext());
 
 
