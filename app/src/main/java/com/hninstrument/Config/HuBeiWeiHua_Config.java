@@ -61,7 +61,12 @@ public class HuBeiWeiHua_Config extends BaseConfig{
     }
 
     @Override
-    public boolean getCheckTime() {
+    public boolean isCheckTime() {
+        return false;
+    }
+
+    @Override
+    public boolean isGetOneShot() {
         return false;
     }
 }

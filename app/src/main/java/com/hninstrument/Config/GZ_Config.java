@@ -63,7 +63,12 @@ public class GZ_Config extends BaseConfig {
     }
 
     @Override
-    public boolean getCheckTime() {
+    public boolean isCheckTime() {
         return true;
+    }
+
+    @Override
+    public boolean isGetOneShot() {
+        return false;
     }
 }

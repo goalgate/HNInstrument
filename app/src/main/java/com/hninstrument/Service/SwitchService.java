@@ -171,7 +171,7 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                     });
         }
-        if(type.getCheckTime()){
+        if(type.isCheckTime()){
             dis_checkTime = Observable.timer(30,TimeUnit.SECONDS).observeOn(Schedulers.io())
                     .subscribe(new Consumer<Long>() {
                         @Override
@@ -425,7 +425,7 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
     private void reboot(){
-        long daySpan = 24 * 60 * 60 * 1000 * 2;
+        long daySpan = 24 * 60 * 60 * 1000 * 1;
         // 规定的每天时间，某时刻运行
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
         // 首次运行时间

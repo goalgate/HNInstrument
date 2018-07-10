@@ -79,11 +79,12 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new SH_Config();
+        InstrumentConfig = new GDMB_Config();
 
         manager = MyManager.getInstance(this);
 
         manager.bindAIDLService(this);
+
         Utils.init(getContext());
 
 

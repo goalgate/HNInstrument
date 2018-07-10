@@ -260,7 +260,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 });
 
         disposableTips = RxTextView.textChanges(tips)
-                .debounce(120, TimeUnit.SECONDS)
+                .debounce(60, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws
@@ -589,7 +589,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             msg_iccard.setText("身份证号为："+cardInfo.cardId());
         } else {
             this.cardInfo = cardInfo;
-            tips.setText(cardInfo.name() + "刷卡中");
+            tips.setText(cardInfo.name() + "刷卡中，请稍后");
             if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
                 if (getState(No_one_OperateState.class)) {
                     person1.setCardId(cardInfo.cardId());
@@ -612,10 +612,19 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     tips.setText("已进入设防状态");
                     //AppInit.getSpeaker().playText("已进入设防状态");
                 }
-                pp.capture();
+                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                    pp.capture();
+                }else{
+                    pp.getOneShut();
+                }
+
                 idp.stopReadCard();
             } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-                pp.capture();
+                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                    pp.capture();
+                }else{
+                    pp.getOneShut();
+                }
                 idp.stopReadCard();
             } else {
                 connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
@@ -635,12 +644,20 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             person2.setName(cardInfo.name());
                                         }
                                     }
-                                    pp.capture();
+                                    if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                                        pp.capture();
+                                    }else{
+                                        pp.getOneShut();
+                                    }
                                     idp.stopReadCard();
                                 }
                             } else {
                                 persontype = "0";
-                                pp.capture();
+                                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                                    pp.capture();
+                                }else{
+                                    pp.getOneShut();
+                                }
                                 idp.stopReadCard();
                             }
                         } else {
@@ -655,8 +672,9 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     @Override
     public void onGetPhoto(Bitmap bmp) {
-        photo = bitmapChange(bmp, 0.3f, 0.3f);
+        photo = bitmapChange(bmp, 0.5f, 0.5f);
         if (persontype.equals("1")) {
+       // if (!persontype.equals("5")) {
             if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
                 if (ins_type.isFace()) {
                     face_upData();
@@ -669,18 +687,21 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 idp.readCard();
             }
         } else if (persontype.equals("2")) {
-            checkRecord();
-        } else if (persontype.equals("0")) {
+            checkRecord(2);
+        } else if (persontype.equals("3")) {
+            checkRecord(3);
+        }
+        else if (persontype.equals("0")) {
             unknownPersonData();
         }
     }
 
-    private void checkRecord() {
+    private void checkRecord(int type) {
         SwitchPresenter.getInstance().OutD9(false);
         Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
         checked.setAction("checked");
         sendBroadcast(checked);
-        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=2",
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType="+type,
                 config.getString("ServerId"),
                 new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
@@ -739,7 +760,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
                                                 @Override
                                                 public void onNext(Long aLong) {
-                                                    checkRecord();
+                                                    checkRecord(2);
                                                 }
 
                                                 @Override
@@ -787,8 +808,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         operation.doNext();
         if (getState(One_man_OperateState.class)) {
             person1.setPhoto(photo);
-            photo = bitmapChange(photo, 3.3f, 5f);
-            captured1.setImageBitmap(photo);
+            Bitmap show_photo = bitmapChange(photo, 3.5f, 4f);
+            captured1.setImageBitmap(show_photo);
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
           //  AppInit.getSpeaker().playText("打卡成功");
             pp.setDisplay(surfaceView.getHolder());
@@ -804,7 +825,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
                         @Override
                         public void onNext(Long aLong) {
-                            checkRecord();
+                            checkRecord(2);
                         }
 
                         @Override

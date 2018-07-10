@@ -8,7 +8,7 @@ public class GDMB_Config extends BaseConfig {
 
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override
@@ -62,7 +62,12 @@ public class GDMB_Config extends BaseConfig {
     }
 
     @Override
-    public boolean getCheckTime() {
+    public boolean isCheckTime() {
         return false;
+    }
+
+    @Override
+    public boolean isGetOneShot() {
+        return true;
     }
 }

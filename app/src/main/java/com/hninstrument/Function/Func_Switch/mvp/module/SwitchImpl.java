@@ -173,15 +173,15 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
                     }
                     switchingValue[7]=1;
                     switchingTime=Calendar.getInstance();
-                    mhandler.sendMessage(getMsg(0x123));
+                    mhandler.sendEmptyMessage(0x123);
                 }else if(by[0]==(byte)0xBB&&by[1]==(byte)0xBB&&by[2]==(byte)0xBB)
                 {
                     if(by[4]==0x00&&by[7]==(byte)0xC1&&by[8]==(byte)0xEF) {
                         temperature = (int) by[5];
                         humidity = (int) by[3];
                         temHumTime = Calendar.getInstance();
-                        mhandler.sendMessage(getMsg(0x123));
-                        mhandler.sendMessage(getMsg(0x234));
+                        mhandler.sendEmptyMessage(0x123);
+                        mhandler.sendEmptyMessage(0x234);
                     }else if(by[3]==(byte)0x96&&by[6]==0x1F&&by[7]==0x44&&by[8]==(byte)0xAD) {
                         //mhandler.sendMessage(getMsg(0x123));
                     }
@@ -216,9 +216,4 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
         }
     };
 
-    private Message getMsg(int what){
-        Message msg = new Message();
-        msg.what = what;
-        return msg;
-    }
 }

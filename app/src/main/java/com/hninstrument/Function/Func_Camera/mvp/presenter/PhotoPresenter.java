@@ -106,5 +106,17 @@ public class PhotoPresenter {
         photoModule.closeCamera();
     }
 
+    public void getOneShut(){
+        photoModule.getOneShut(new IPhotoModule.IOnSetListener(){
+            @Override
+            public void onBtnText(String msg) {
+                view.onCaremaText(msg);
+            }
 
+            @Override
+            public void onGetPhoto(Bitmap bmp) {
+                view.onGetPhoto(bmp);
+            }
+        });
+    }
 }
