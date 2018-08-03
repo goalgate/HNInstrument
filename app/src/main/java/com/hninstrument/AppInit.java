@@ -2,9 +2,6 @@ package com.hninstrument;
 
 import android.app.Application;
 import android.content.Context;
-
-import com.blankj.utilcode.util.SPUtils;
-import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
@@ -16,24 +13,14 @@ import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Config.XA_Config;
-import com.hninstrument.Tools.AssetsUtils;
 import com.hninstrument.Tools.DaoMaster;
 import com.hninstrument.Tools.DaoSession;
 import com.squareup.leakcanary.LeakCanary;
-
 import com.ys.myapi.MyManager;
-
 import org.greenrobot.greendao.database.Database;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 import cbdi.log.Lg;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by zbsz on 2017/11/25.
@@ -79,15 +66,13 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new GDMB_Config();
+        InstrumentConfig = new HeiBei_Config();
 
         manager = MyManager.getInstance(this);
 
         manager.bindAIDLService(this);
 
         Utils.init(getContext());
-
-
 
         //initDatabase();
 
