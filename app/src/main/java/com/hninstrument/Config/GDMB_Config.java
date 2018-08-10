@@ -70,4 +70,9 @@ public class GDMB_Config extends BaseConfig {
     public boolean isGetOneShot() {
         return true;
     }
+
+    @Override
+    public boolean disAlarm() {
+        return false;
+    }
 }
