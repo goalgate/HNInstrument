@@ -8,7 +8,7 @@ import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.GZ_Config;
 import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Config.HN_Config;
-import com.hninstrument.Config.HeiBei_Config;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SH_Config;
@@ -66,7 +66,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeiBei_Config();
+        InstrumentConfig = new HeBei_Config();
 
         manager = MyManager.getInstance(this);
 

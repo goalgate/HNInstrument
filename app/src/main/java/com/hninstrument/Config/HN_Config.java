@@ -70,4 +70,9 @@ public class HN_Config extends BaseConfig {
     public boolean isGetOneShot() {
         return false;
     }
+
+    @Override
+    public boolean disAlarm() {
+        return false;
+    }
 }

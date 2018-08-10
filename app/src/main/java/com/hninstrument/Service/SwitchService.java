@@ -185,6 +185,7 @@ public class SwitchService extends Service implements ISwitchView {
         reboot();
     }
 
+
     private void autoUpdate() {
         connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
             @Override

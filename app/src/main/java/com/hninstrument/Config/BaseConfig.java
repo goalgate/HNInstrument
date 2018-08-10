@@ -32,4 +32,5 @@ public abstract class BaseConfig {
 
     public abstract boolean isGetOneShot();
 
+    public abstract boolean disAlarm();
 }

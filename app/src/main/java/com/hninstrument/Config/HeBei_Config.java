@@ -1,6 +1,6 @@
 package com.hninstrument.Config;
 
-public class HeiBei_Config extends BaseConfig {
+public class HeBei_Config extends BaseConfig {
     @Override
     public boolean isFace() {
         return true;
@@ -48,7 +48,7 @@ public class HeiBei_Config extends BaseConfig {
 
     @Override
     public String getProject() {
-        return "HeiBeiFB";
+        return "HeBeiFB";
     }
 
     @Override
@@ -63,6 +63,11 @@ public class HeiBei_Config extends BaseConfig {
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean disAlarm() {
+        return true;
     }
 }

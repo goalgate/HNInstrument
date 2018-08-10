@@ -70,4 +70,8 @@ public class HuBeiFB_Config extends BaseConfig {
         return false;
     }
 
+    @Override
+    public boolean disAlarm() {
+        return false;
+    }
 }

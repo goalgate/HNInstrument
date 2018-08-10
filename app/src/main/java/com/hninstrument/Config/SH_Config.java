@@ -68,6 +68,11 @@ public class SH_Config extends BaseConfig{
 
     @Override
     public boolean isGetOneShot() {
+        return true;
+    }
+
+    @Override
+    public boolean disAlarm() {
         return false;
     }
 }

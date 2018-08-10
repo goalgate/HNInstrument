@@ -8,7 +8,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public String getDev_prefix() {
-        return "800100";
+        return "800200";
     }
 
     @Override
@@ -68,6 +68,11 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public boolean isGetOneShot() {
+        return false;
+    }
+
+    @Override
+    public boolean disAlarm() {
         return false;
     }
 }

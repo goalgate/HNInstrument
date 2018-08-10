@@ -70,4 +70,9 @@ public class HLJ_Config extends BaseConfig {
     public boolean isGetOneShot() {
         return false;
     }
+
+    @Override
+    public boolean disAlarm() {
+        return true;
+    }
 }
