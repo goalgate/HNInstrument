@@ -73,6 +73,6 @@ public class SH_Config extends BaseConfig{
 
     @Override
     public boolean disAlarm() {
-        return false;
+        return true;
     }
 }

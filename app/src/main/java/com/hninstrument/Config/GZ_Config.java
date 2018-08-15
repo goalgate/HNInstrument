@@ -74,6 +74,6 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public boolean disAlarm() {
-        return false;
+        return true;
     }
 }

@@ -284,7 +284,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         ServerInput();
         IpviewInit();
         messageInit();
-
+        AppInit.getMyManager().ethEnabled(true);
     }
 
     private void ServerInput() {

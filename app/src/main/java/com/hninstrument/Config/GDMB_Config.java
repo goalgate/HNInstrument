@@ -73,6 +73,6 @@ public class GDMB_Config extends BaseConfig {
 
     @Override
     public boolean disAlarm() {
-        return false;
+        return true;
     }
 }
