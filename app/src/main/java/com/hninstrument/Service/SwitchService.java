@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
@@ -14,6 +15,7 @@ import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
+import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
@@ -29,7 +31,9 @@ import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
+import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
+import com.hninstrument.greendao.DaoSession;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -90,12 +94,15 @@ public class SwitchService extends Service implements ISwitchView {
     int last_mTemperature = 0;
 
     int last_mHumidity = 0;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
     boolean network_State = false;
+
+    DaoSession mdaoSession = AppInit.getInstance().getDaoSession();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -113,29 +120,29 @@ public class SwitchService extends Service implements ISwitchView {
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
-                                    ,config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            if (response != null) {
-                                                if (response.startsWith("true")) {
-                                                    if(!network_State){
-                                                        updata();
-                                                        autoUpdate();
-                                                    }
-                                                    network_State = true;
-                                                    EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
-                                                } else {
-                                                    network_State = false;
-                                                    EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
+                                , config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                                    @Override
+                                    public void onResponse(String response) {
+                                        if (response != null) {
+                                            if (response.startsWith("true")) {
+                                                if (!network_State) {
+                                                    updata();
+                                                    autoUpdate();
                                                 }
+                                                network_State = true;
+                                                EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
                                             } else {
                                                 network_State = false;
-                                                EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
+                                                EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
                                             }
+                                        } else {
+                                            network_State = false;
+                                            EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                         }
-                                    });
-                        }
+                                    }
+                                });
+                    }
                 });
 
         dis_checkOnline = Observable.interval(0, type.getCheckOnlineTime(), TimeUnit.MINUTES)
@@ -144,8 +151,8 @@ public class SwitchService extends Service implements ISwitchView {
                     @Override
                     public void accept(@NonNull Long aLong) throws Exception {
                         if (network_State) {
-                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=checkOnline"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
-                                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
+                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=checkOnline"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
+                                    config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                                         @Override
                                         public void onResponse(String response) {
 
@@ -155,7 +162,7 @@ public class SwitchService extends Service implements ISwitchView {
                     }
                 });
 
-        if(type.isTemHum()){
+        if (type.isTemHum()) {
             dis_TemHum = Observable.interval(0, 5, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
                 @Override
                 public void accept(@NonNull Long aLong) throws Exception {
@@ -171,8 +178,8 @@ public class SwitchService extends Service implements ISwitchView {
                         }
                     });
         }
-        if(type.isCheckTime()){
-            dis_checkTime = Observable.timer(30,TimeUnit.SECONDS).observeOn(Schedulers.io())
+        if (type.isCheckTime()) {
+            dis_checkTime = Observable.timer(30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                     .subscribe(new Consumer<Long>() {
                         @Override
                         public void accept(Long aLong) throws Exception {
@@ -199,49 +206,49 @@ public class SwitchService extends Service implements ISwitchView {
         });
     }
 
-    private void updata(){
-        connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=2",
+    private void updata() {
+        connectionUtil.post(config.getString("ServerId") + type.getPersonInfoPrefix() + "dataType=updatePersion&daid=" + config.getString("devid") /*+ "&pass=" + new SafeCheck().getPass(config.getString("devid"))*/ + "&persionType=2",
                 config.getString("ServerId"),
                 new ServerConnectionUtil.Callback() {
-            @Override
-            public void onResponse(String response) {
-                if (response != null) {
-                    SPUtils.getInstance("personData").clear();
-                    String[] idList = response.split("\\|");
-                    if (idList.length > 0) {
-                        for (String id : idList) {
-                            SPUtils.getInstance("personData").put(id, "2");
-                        }
-                        connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + type.getPersonInfoPrefix()+"dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */+ "&persionType=1",
-                                config.getString("ServerId"),new ServerConnectionUtil.Callback() {
-
-                            @Override
-                            public void onResponse(String response) {
-                                if(response!=null){
-
-                                    String[] idList = response.split("\\|");
-                                    if (idList.length >0) {
-                                        for (String id : idList) {
-                                            SPUtils.getInstance("personData").put(id, "1");
-                                        }
-                                    } else {
-                                        ToastUtils.showLong("仓管员更新错误或并无巡检员");
-                                    }
-                                }else{
-                                    ToastUtils.showLong("连接服务器错误");
+                    @Override
+                    public void onResponse(String response) {
+                        if (response != null) {
+                            SPUtils.getInstance("personData").clear();
+                            String[] idList = response.split("\\|");
+                            if (idList.length > 0) {
+                                for (String id : idList) {
+                                    SPUtils.getInstance("personData").put(id, "2");
                                 }
+                                connectionUtil.post(SPUtils.getInstance("config").getString("ServerId") + type.getPersonInfoPrefix() + "dataType=updatePersion&daid=" + config.getString("devid")/* + "&pass=" + new SafeCheck().getPass(config.getString("devid")) */ + "&persionType=1",
+                                        config.getString("ServerId"), new ServerConnectionUtil.Callback() {
 
+                                            @Override
+                                            public void onResponse(String response) {
+                                                if (response != null) {
+
+                                                    String[] idList = response.split("\\|");
+                                                    if (idList.length > 0) {
+                                                        for (String id : idList) {
+                                                            SPUtils.getInstance("personData").put(id, "1");
+                                                        }
+                                                    } else {
+                                                        ToastUtils.showLong("没有相应仓管员信息");
+                                                    }
+                                                } else {
+                                                    ToastUtils.showLong("连接服务器错误");
+                                                }
+
+                                            }
+                                        });
+                            } else {
+                                ToastUtils.showLong("没有相应巡检员信息");
                             }
-                        });
-                    } else {
-                        ToastUtils.showLong("巡检员更新错误或并无仓管员");
-                    }
-                } else {
-                    ToastUtils.showLong("连接服务器错误");
-                }
+                        } else {
+                            ToastUtils.showLong("连接服务器错误");
+                        }
 
-            }
-        });
+                    }
+                });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -265,7 +272,6 @@ public class SwitchService extends Service implements ISwitchView {
     }
 
 
-
     public void onDestroy() {
         super.onDestroy();
         sp.SwitchPresenterSetView(null);
@@ -276,10 +282,10 @@ public class SwitchService extends Service implements ISwitchView {
         if (dis_checkOnline != null) {
             dis_checkOnline.dispose();
         }
-        if(dis_stateRecord != null){
+        if (dis_stateRecord != null) {
             dis_stateRecord.dispose();
         }
-        if (dis_TemHum != null){
+        if (dis_TemHum != null) {
             dis_TemHum.dispose();
         }
         EventBus.getDefault().unregister(this);
@@ -301,7 +307,7 @@ public class SwitchService extends Service implements ISwitchView {
 
     @Override
     public void onSwitchingText(String value) {
-        if(value.startsWith("AAAAAA")){
+        if (value.startsWith("AAAAAA")) {
             if ((Last_Value == null || Last_Value.equals(""))) {
                 Last_Value = value;
             }
@@ -320,8 +326,8 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void StateRecord() {
         if (network_State) {
-            connectionUtil.post(config.getString("ServerId")+ type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=temHum&tem="+last_mTemperature+"&hum="+last_mHumidity+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
-                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
+            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=temHum&tem=" + last_mTemperature + "&hum=" + last_mHumidity + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+                    config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
@@ -334,32 +340,33 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void alarmRecord() {
         EventBus.getDefault().post(new AlarmEvent());
-        if (network_State) {
-            connectionUtil.post(config.getString("ServerId")+ type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"+ "&time=" +formatter.format(new Date(System.currentTimeMillis())),
-                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
-                        @Override
-                        public void onResponse(String response) {
 
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response == null) {
+                            MediaHelper.play(MediaHelper.Text.alarm);
+                            mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
                         }
-                    });
-        } else {
+                    }
+                });
 
-        }
+
     }
 
     private void CloseDoorRecord() {
-        if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix()+"daid=" + config.getString("devid") + "&dataType=closeDoor"+"&time=" + formatter.format(new Date(System.currentTimeMillis())),
-                    config.getString("ServerId"),new ServerConnectionUtil.Callback() {
-                        @Override
-                        public void onResponse(String response) {
-
+        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=closeDoor" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                    @Override
+                    public void onResponse(String response) {
+                        if(response == null){
+                            mdaoSession.insert(new ReUploadBean(null,"dataType=closeDoor" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),null,0));
                         }
-                    });
-        } else {
-
-        }
+                    }
+                });
     }
+
     private Boolean getLockState(Class stateClass) {
         if (lock.getLockState().getClass().getName().equals(stateClass.getName())) {
             return true;
@@ -367,33 +374,35 @@ public class SwitchService extends Service implements ISwitchView {
             return false;
         }
     }
+
     Calendar c = Calendar.getInstance();
     PendingIntent checkTime_pi;
-    private void checkTime(final boolean add){
-        Lg.e("提示","获取时间开始");
+
+    private void checkTime(final boolean add) {
+        Lg.e("提示", "获取时间开始");
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkTime" + "&daid=" + config.getString("devid"),
                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
-                        AlarmManager am = (AlarmManager)getSystemService(ALARM_SERVICE);
+                        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
                         Intent check_intent = new Intent(SwitchService.this, TimeCheckReceiver.class);
                         check_intent.setAction("checkTime");
-                        if(response!=null){
+                        if (response != null) {
                             String[] timeArray = response.split(",");
-                            for (String time:timeArray){
-                                c.set(c.get(Calendar.YEAR),c.get(Calendar.MONTH),c.get(Calendar.DATE),Integer.parseInt(time.split(":")[0]),Integer.parseInt(time.split(":")[1]),00); //当前时间
-                                if(add){
-                                    c.add(Calendar.DATE,1);
+                            for (String time : timeArray) {
+                                c.set(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DATE), Integer.parseInt(time.split(":")[0]), Integer.parseInt(time.split(":")[1]), 00); //当前时间
+                                if (add) {
+                                    c.add(Calendar.DATE, 1);
                                 }
-                                c.add(Calendar.MINUTE,-5);
-                                if(c.getTimeInMillis()> System.currentTimeMillis()){
-                                    check_intent.putExtra("time",check_formatter.format(c.getTimeInMillis()));
-                                    checkTime_pi = PendingIntent.getBroadcast(SwitchService.this, new Random().nextInt(),check_intent ,0);
-                                    Lg.e("时间",check_formatter.format(c.getTimeInMillis()));
+                                c.add(Calendar.MINUTE, -5);
+                                if (c.getTimeInMillis() > System.currentTimeMillis()) {
+                                    check_intent.putExtra("time", check_formatter.format(c.getTimeInMillis()));
+                                    checkTime_pi = PendingIntent.getBroadcast(SwitchService.this, new Random().nextInt(), check_intent, 0);
+                                    Lg.e("时间", check_formatter.format(c.getTimeInMillis()));
                                     am.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), checkTime_pi);
                                 }
-                                if(add){
-                                    c.add(Calendar.DATE,-1);
+                                if (add) {
+                                    c.add(Calendar.DATE, -1);
                                 }
                             }
                         }
@@ -401,50 +410,52 @@ public class SwitchService extends Service implements ISwitchView {
                 });
     }
 
-    private void replaceCheckTime(){
+    private void replaceCheckTime() {
         long daySpan = 24 * 60 * 60 * 1000;
         // 规定的每天时间，某时刻运行
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '23:55:00'");
         // 首次运行时间
-        try{
-            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if(System.currentTimeMillis() > startTime.getTime())
+        try {
+            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if (System.currentTimeMillis() > startTime.getTime())
                 startTime = new Date(startTime.getTime() + daySpan);
             Timer t = new Timer();
-            TimerTask task = new TimerTask(){
+            TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     // 要执行的代码
                     checkTime(true);
-                    Lg.e("信息提示：","重置巡检时间");
+                    Lg.e("信息提示：", "重置巡检时间");
                 }
             };
-            t.scheduleAtFixedRate(task, startTime,daySpan);
-        }catch (ParseException e){
+            t.scheduleAtFixedRate(task, startTime, daySpan);
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }
 
-    private void reboot(){
+    private void reboot() {
         long daySpan = 24 * 60 * 60 * 1000 * 1;
         // 规定的每天时间，某时刻运行
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd '03:00:00'");
+        int randomTime = new Random().nextInt(50)+10;
+        String pattern = "yyyy-MM-dd '03:"+randomTime+":00'";
+        final SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        Log.e("rebootTime",pattern);
         // 首次运行时间
-        try{
-            Date startTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if(System.currentTimeMillis() > startTime.getTime())
+        try {
+            Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
+            if (System.currentTimeMillis() > startTime.getTime())
                 startTime = new Date(startTime.getTime() + daySpan);
             Timer t = new Timer();
-            TimerTask task = new TimerTask(){
+            TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     // 要执行的代码
                     AppInit.getMyManager().reboot();
-                    Lg.e("信息提示：","重置巡检时间");
                 }
             };
-            t.scheduleAtFixedRate(task, startTime,daySpan);
-        }catch (ParseException e){
+            t.scheduleAtFixedRate(task, startTime, daySpan);
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }

@@ -68,7 +68,7 @@ public class HLJ_Config extends BaseConfig {
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
     }
 
     @Override

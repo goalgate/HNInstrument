@@ -1,9 +1,7 @@
 package com.hninstrument;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.gesture.Gesture;
 import android.gesture.GestureLibraries;
 import android.gesture.GestureLibrary;
@@ -11,10 +9,7 @@ import android.gesture.GestureOverlayView;
 import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.Path;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -31,15 +26,13 @@ import android.widget.TextView;
 
 import com.bigkoo.alertview.AlertView;
 import com.bigkoo.alertview.OnItemClickListener;
-import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
-
-import com.google.zxing.qrcode.encoder.QRCode;
 import com.hninstrument.Bean.DataFlow.PersonBean;
+import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
@@ -60,8 +53,11 @@ import com.hninstrument.State.OperationState.One_man_OperateState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.DAInfo;
+import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.NetInfo;
 import com.hninstrument.Tools.ServerConnectionUtil;
+import com.hninstrument.greendao.DaoSession;
+import com.hninstrument.greendao.ReUploadBeanDao;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 
@@ -72,13 +68,10 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -117,6 +110,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     PersonBean person1 = new PersonBean();
 
     PersonBean person2 = new PersonBean();
+
+    DaoSession mdaoSession = AppInit.getInstance().getDaoSession();
 
     @BindView(R.id.tv_time)
     TextView tv_time;
@@ -185,15 +180,21 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     private String STATICIP = "StaticIp";
     private String DHCP = "DHCP";
+
     @OnClick(R.id.iv_lock)
     void showMessage() {
+
         msg_daid.setText("设备ID：" + config.getString("devid"));
-        msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
+        if (TextUtils.isEmpty(NetworkUtils.getIPAddress(true))) {
+            msg_ip.setText("IP地址：无法获取IP地址");
+        } else {
+            msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
+        }
         msg_mac.setText("MAC地址：" + new NetInfo().getMac());
         msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
         if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
             msg_ipmode.setText("当前以太网为动态IP获取模式");
-        } else if(STATICIP .equals(AppInit.getMyManager().getEthMode())){
+        } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
             msg_ipmode.setText("当前以太网为静态IP获取模式");
         } else {
             msg_ipmode.setText("当前固件版本过低，无法获取以太网设置模式");
@@ -233,11 +234,10 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     private AlertView inputServerView;
     String url;
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Lg.e("mainactivity","oncreate");
+        Lg.e("mainactivity", "oncreate");
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
@@ -250,7 +250,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         }
         openService();
         surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-
 
         Observable.interval(0, 1, TimeUnit.SECONDS)
                 .compose(this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
@@ -268,7 +267,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws
                             Exception {
-                        return Observable.just(config.getString("devid")+"号机器等待用户操作");
+                        return Observable.just(config.getString("devid") + "号机器等待用户操作");
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
@@ -279,12 +278,12 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     }
                 });
         operation = new Operation(new No_one_OperateState());
-
         setGesture();
         ServerInput();
         IpviewInit();
         messageInit();
         AppInit.getMyManager().ethEnabled(true);
+        MediaHelper.mediaOpen();
     }
 
     private void ServerInput() {
@@ -540,7 +539,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         super.onResume();
         networkState = false;
         operation.setState(new No_one_OperateState());
-        tips.setText(config.getString("devid")+"号机器等待用户操作");
+        tips.setText(config.getString("devid") + "号机器等待用户操作");
     }
 
     @Override
@@ -550,16 +549,73 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         //stopService(intent);
         disposableTips.dispose();
         AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
+        MediaHelper.mediaRealese();
         EventBus.getDefault().unregister(this);
     }
 
 
     boolean networkState;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetNetworkEvent(NetworkEvent event) {
         if (event.getNetwork_state()) {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-            networkState = true;
+            if (!networkState) {
+                networkState = true;
+                final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
+                List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
+                if (list.size() > 20) {
+                    idp.stopReadCard();
+                    MediaHelper.play(MediaHelper.Text.wait_reupload);
+                }
+                for (final ReUploadBean bean : list) {
+                    if(bean.getContent()!=null){
+                        if (bean.getType_patrol() != 0) {
+                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid") + "&checkType=" + bean.getType_patrol(),
+                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
+                                        @Override
+                                        public void onResponse(String response) {
+                                            if (response != null) {
+                                                if (response.startsWith("true")) {
+                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                                    reUploadBeanDao.delete(bean);
+                                                }
+                                            }
+                                        }
+                                    });
+                        } else {
+                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
+                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
+                                        @Override
+                                        public void onResponse(String response) {
+                                            if (response != null) {
+                                                if (response.startsWith("true")) {
+                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                                    reUploadBeanDao.delete(bean);
+                                                }
+                                            }
+                                        }
+                                    });
+                        }
+                    }else{
+                        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
+                                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                                    @Override
+                                    public void onResponse(String response) {
+                                        if (response != null) {
+                                            if (response.startsWith("true")) {
+                                                Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                                reUploadBeanDao.delete(bean);
+                                            }
+                                        }
+                                    }
+                                });
+                    }
+
+                }
+                idp.readCard();
+                MediaHelper.play(MediaHelper.Text.waiting);
+            }
         } else {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.non_wifi));
             networkState = false;
@@ -573,7 +629,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onGetAlarmEvent(AlarmEvent event){
+    public void onGetAlarmEvent(AlarmEvent event) {
         tips.setText("开门报警已被触发");
         //AppInit.getSpeaker().playText("开门报警已被触发");
     }
@@ -594,7 +650,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onsetCardInfo(final CardInfoRk123x cardInfo) {
         if (messageAlert.isShowing()) {
-            msg_iccard.setText("身份证号为："+cardInfo.cardId());
+            msg_iccard.setText("身份证号为：" + cardInfo.cardId());
         } else {
             this.cardInfo = cardInfo;
             tips.setText(cardInfo.name() + "刷卡中，请稍后");
@@ -607,7 +663,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     person2.setName(cardInfo.name());
                     if (person1.getCardId().equals(person2.getCardId())) {
                         tips.setText("请不要连续输入同一个管理员的信息");
-                        //AppInit.getSpeaker().playText("请不要连续输入同一个管理员的信息");
+                        MediaHelper.play(MediaHelper.Text.err_samePerson);
                         return;
                     } else {
                         if (checkChange != null) {
@@ -618,19 +674,18 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     EventBus.getDefault().post(new CloseDoorEvent());
                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
                     tips.setText("已进入设防状态");
-                    //AppInit.getSpeaker().playText("已进入设防状态");
+                    MediaHelper.play(MediaHelper.Text.relock_opt);
                 }
-                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
                     pp.capture();
-                }else{
+                } else {
                     pp.getOneShut();
                 }
-
                 idp.stopReadCard();
             } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
                     pp.capture();
-                }else{
+                } else {
                     pp.getOneShut();
                 }
                 idp.stopReadCard();
@@ -652,25 +707,32 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             person2.setName(cardInfo.name());
                                         }
                                     }
-                                    if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                                    if (!AppInit.getInstrumentConfig().isGetOneShot()) {
                                         pp.capture();
-                                    }else{
+                                    } else {
                                         pp.getOneShut();
                                     }
                                     idp.stopReadCard();
                                 }
                             } else {
                                 persontype = "0";
-                                if(!AppInit.getInstrumentConfig().isGetOneShot()){
+                                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
                                     pp.capture();
-                                }else{
+                                } else {
                                     pp.getOneShut();
                                 }
                                 idp.stopReadCard();
                             }
                         } else {
                             tips.setText("人员身份查询：服务器上传出错");
-                          //  AppInit.getSpeaker().playText("服务器上传出错");
+//                            MediaHelper.play(MediaHelper.Text.err_connect);
+                            persontype = "0";
+                            if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                                pp.capture();
+                            } else {
+                                pp.getOneShut();
+                            }
+                            idp.stopReadCard();
                         }
                     }
                 });
@@ -682,7 +744,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     public void onGetPhoto(Bitmap bmp) {
         photo = compressImage(bmp);
         if (persontype.equals("1")) {
-       // if (!persontype.equals("5")) {
+            // if (!persontype.equals("5")) {
             if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
                 if (ins_type.isFace()) {
                     face_upData();
@@ -698,18 +760,17 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             checkRecord(2);
         } else if (persontype.equals("3")) {
             checkRecord(3);
-        }
-        else if (persontype.equals("0")) {
+        } else if (persontype.equals("0")) {
             unknownPersonData();
         }
     }
 
-    private void checkRecord(int type) {
+    private void checkRecord(final int type) {
         SwitchPresenter.getInstance().OutD9(false);
-        Intent checked = new Intent(MainActivity.this,TimeCheckReceiver.class);
+        Intent checked = new Intent(MainActivity.this, TimeCheckReceiver.class);
         checked.setAction("checked");
         sendBroadcast(checked);
-        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType="+type,
+        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=" + type,
                 config.getString("ServerId"),
                 new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
                 new ServerConnectionUtil.Callback() {
@@ -724,14 +785,15 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         if (response != null) {
                             if (response.startsWith("true")) {
                                 tips.setText("巡检数据：巡检成功");
-                              //  AppInit.getSpeaker().playText("巡检成功");
+                                MediaHelper.play(MediaHelper.Text.msg_patrol);
                             } else {
                                 tips.setText("巡检数据：上传失败");
-                              //  AppInit.getSpeaker().playText("巡检数据上传失败");
+                                MediaHelper.play(MediaHelper.Text.err_upload);
                             }
                         } else {
                             tips.setText("巡检数据：无法连接到服务器");
-                           // AppInit.getSpeaker().playText("无法连接到服务器");
+                            MediaHelper.play(MediaHelper.Text.err_connect);
+                            mdaoSession.insert(new ReUploadBean(null, "dataType=checkRecord", new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), type));
                         }
                     }
                 });
@@ -754,7 +816,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                     person1.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
                                     captured1.setImageBitmap(photo);
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person1.getFaceReconition());
-                                   // AppInit.getSpeaker().playText("打卡成功");
+                                    MediaHelper.play(MediaHelper.Text.first_opt);
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
                                     Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
@@ -787,7 +849,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                     EventBus.getDefault().post(new PassEvent());
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
-                                    //AppInit.getSpeaker().playText("打卡成功");
+                                    MediaHelper.play(MediaHelper.Text.second_opt);
                                     face_openDoorUpData();
                                 }
                             } else {
@@ -797,6 +859,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             }
                         } else {
                             tips.setText("仓管员数据：无法连接服务器");
+                            MediaHelper.play(MediaHelper.Text.err_connect_ns);
                             pp.setDisplay(surfaceView.getHolder());
                             idp.readCard();
                         }
@@ -816,7 +879,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             person1.setPhoto(photo);
             captured1.setImageBitmap(photo);
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
-          //  AppInit.getSpeaker().playText("打卡成功");
+            MediaHelper.play(MediaHelper.Text.first_opt);
             pp.setDisplay(surfaceView.getHolder());
             idp.readCard();
             Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
@@ -849,7 +912,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             EventBus.getDefault().post(new PassEvent());
             iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
-           // AppInit.getSpeaker().playText("打卡成功");
+            MediaHelper.play(MediaHelper.Text.second_opt);
             noface_openDoorUpData();
         }
     }
@@ -863,10 +926,18 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
+                        if (response != null) {
+                            if (response.startsWith("true")) {
+                                tips.setText("来访人员信息已上传");
+                                MediaHelper.play(MediaHelper.Text.msg_visit);
+                            }
+                        } else {
+                            tips.setText("来访人员信息：无法连接到服务器");
+                            MediaHelper.play(MediaHelper.Text.err_connect);
+                            mdaoSession.insert(new ReUploadBean(null, "dataType=persionRecord", upPersonRecordData.toPersonRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), 0));
+                        }
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
-                        tips.setText("未知人员信息已上传");
-                      //  AppInit.getSpeaker().playText("未知人员信息已上传");
                     }
                 });
 
@@ -893,16 +964,19 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             public void onResponse(String response) {
                                                 if (response != null) {
                                                     tips.setText("开门记录已上传到服务器");
-                                                }else{
+                                                } else {
                                                     tips.setText("无法连接到服务器");
+                                                    MediaHelper.play(MediaHelper.Text.err_connect_ns);
                                                 }
                                             }
                                         });
                             } else {
                                 tips.setText("上传失败，请注意是否单人双卡操作");
+                                MediaHelper.play(MediaHelper.Text.err_omtk);
                             }
                         } else {
                             tips.setText("开门记录数据：无法连接到服务器");
+                            MediaHelper.play(MediaHelper.Text.err_connect_ns);
                         }
                     }
                 });
@@ -923,8 +997,10 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     public void onResponse(String response) {
                         if (response != null) {
                             tips.setText("开门记录已上传到服务器");
-                        }else{
+                        } else {
                             tips.setText("开门记录服务器上传失败");
+                            MediaHelper.play(MediaHelper.Text.second_err);
+                            mdaoSession.insert(new ReUploadBean(null, "dataType=openDoor", new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), person2.getPhoto()).toByteArray(), 0));
                         }
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
@@ -947,7 +1023,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 100, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
         int options = 100;
-        while ( baos.toByteArray().length / 1024>100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
+        while (baos.toByteArray().length / 1024 > 100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
             baos.reset();//重置baos即清空baos
             image.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
             options -= 10;//每次都减少10

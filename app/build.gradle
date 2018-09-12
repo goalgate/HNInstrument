@@ -9,6 +9,8 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "2.3"
+//        黑龙江现版本2.1
+//        广东民爆2.4
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -23,6 +25,21 @@ android {
             jni.srcDirs = []
         }
     }
+}
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.greenrobot:greendao-gradle-plugin:3.2.1'
+    }
+}
+greendao {
+    schemaVersion 2//数据库版本号
+    daoPackage 'com.hninstrument.greendao'//设置DaoMaster、DaoSession、Dao包名
+    targetGenDir 'src/main/java'//设置DaoMaster、DaoSession、Dao目录
+    //targetGenDirTest：设置生成单元测试目录
+    //generateTests：设置自动生成单元测试用例
 }
 def retrofitVersion = '2.2.0'
 dependencies {
@@ -60,4 +77,6 @@ dependencies {
     compile 'cn.yipianfengye.android:zxing-library:2.2'
     compile files('libs/rkapi.jar')
     compile files('libs/usc.jar')
+    compile 'org.greenrobot:greendao:3.2.2'
+    compile 'org.greenrobot:greendao-generator:3.2.2'
 }
