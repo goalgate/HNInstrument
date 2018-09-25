@@ -10,13 +10,17 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.blankj.utilcode.util.AppUtils;
+import com.blankj.utilcode.util.EncodeUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
+import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
@@ -51,6 +55,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import cbdi.drv.netDa.INetDaSocketEvent;
+import cbdi.drv.netDa.NetDAM0888Data;
+import cbdi.drv.netDa.NetDAM0888Socket;
 import cbdi.log.Lg;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -63,7 +70,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by zbsz on 2017/11/24.
  */
 
-public class SwitchService extends Service implements ISwitchView {
+public class SwitchService extends Service implements ISwitchView, INetDaSocketEvent {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
 
@@ -90,6 +97,12 @@ public class SwitchService extends Service implements ISwitchView {
     Disposable dis_checkTime;
 
     Disposable dis_stateRecord;
+
+    private int ADNum = 0;
+
+    private NetDAM0888Socket netDa = null;
+
+    private NetDAM0888Data daData = new NetDAM0888Data();
 
     int last_mTemperature = 0;
 
@@ -189,6 +202,46 @@ public class SwitchService extends Service implements ISwitchView {
                     });
 
         }
+        if (AppInit.getInstrumentConfig().collectBox()) {
+            netDa = new SocketBuilder()
+                    .setBuilderNumber(1)
+                    .setBuilderEvent(this)
+                    .setBuilderDATime(1000)
+                    .builder_open("192.168.12.232", 10000);
+
+            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=queryTdhInfo"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
+                    config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+
+                            if (response != null && !response.equals("false")) {
+                                String[] str_array = response.split("\\|\\|");
+
+                                ADNum = str_array.length;
+
+                                for (String s : str_array) {
+                                    String[] new_s = s.split("\\,");
+
+                                    daData.getAI(Integer.parseInt(new_s[0]))
+                                            .setBuilderEnable(true)
+                                            .setBuilderName((new_s[1]))
+                                            .setBuilderUnit((new_s[2]))
+                                            .setBuilderMinVal(Integer.parseInt(new_s[3]))
+                                            .setBuilderMaxVal(Integer.parseInt(new_s[4]))
+                                            .setBuilderMinRange(Integer.parseInt(new_s[5]))
+                                            .setBuilderMaxRange(Integer.parseInt(new_s[6]))
+                                            .setSensorAIBuilderPrecision(Integer.parseInt(new_s[7]))
+                                            .setSensorAIBuilderAlarmMinVal(Integer.parseInt(new_s[8]))
+                                            .setSensorAIBuilderAlarmMaxVal(Integer.parseInt(new_s[9]));
+//                    通道号，名称，单位，采集最小值，采集最大值，最小量程，最大量程，精度,最小报警值(-1时不报警)，最大报警值，变化值（-1为不设置）||N
+//                    0,液位:,米,4,20,0,5,2,-1,-1,-1||1,气体浓度:,%,4,20,0,100,1,-1,20,-1
+                                }
+                            }
+
+                        }
+
+                    });
+        }
         reboot();
     }
 
@@ -225,7 +278,6 @@ public class SwitchService extends Service implements ISwitchView {
                                             @Override
                                             public void onResponse(String response) {
                                                 if (response != null) {
-
                                                     String[] idList = response.split("\\|");
                                                     if (idList.length > 0) {
                                                         for (String id : idList) {
@@ -324,15 +376,42 @@ public class SwitchService extends Service implements ISwitchView {
 
     }
 
+
+    boolean socket_connect = false;
+
     private void StateRecord() {
-        if (network_State) {
-            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=temHum&tem=" + last_mTemperature + "&hum=" + last_mHumidity + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+        if (AppInit.getInstrumentConfig().collectBox()) {
+            String extra = "";
+            if (socket_connect) {
+                for (int i = 0; i < ADNum; i++) {
+                    extra += i + "," + daData.getAI(i).getName() + "," + daData.getAI(i).getVal() + ","
+                            + daData.getAI(i).getUnit() + "," + daData.getAI(i).getMinVal() + ","
+                            + daData.getAI(i).getMaxVal() + "||";
+                    //extra += "&"+daData.getAI(i).getEnglish_name()+"="+daData.getAI(i).getVal();
+                }
+            }
+            extra = EncodeUtils.urlEncode(extra);
+            connectionUtil.post(config.getString("ServerId")
+                            + type.getUpDataPrefix() + "daid=" + config.getString("devid")
+                            + "&dataType=temHum&tem=" + last_mTemperature + "&hum=" + last_mHumidity
+                            + "&data=" + extra
+                            + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
                     config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
 
                         }
                     });
+        }else{
+            if (network_State) {
+                connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=temHum&tem=" + last_mTemperature + "&hum=" + last_mHumidity + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+                        config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                            @Override
+                            public void onResponse(String response) {
+
+                            }
+                        });
+            }
         }
 
     }
@@ -340,13 +419,12 @@ public class SwitchService extends Service implements ISwitchView {
 
     private void alarmRecord() {
         EventBus.getDefault().post(new AlarmEvent());
-
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
                         if (response == null) {
-                            MediaHelper.play(MediaHelper.Text.alarm);
+
                             mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
                         }
                     }
@@ -362,6 +440,9 @@ public class SwitchService extends Service implements ISwitchView {
                     public void onResponse(String response) {
                         if(response == null){
                             mdaoSession.insert(new ReUploadBean(null,"dataType=closeDoor" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),null,0));
+                            MediaHelper.play(MediaHelper.Text.err_connect_relock);
+                        }else{
+                            MediaHelper.play(MediaHelper.Text.relock_opt);
                         }
                     }
                 });
@@ -452,11 +533,37 @@ public class SwitchService extends Service implements ISwitchView {
                 public void run() {
                     // 要执行的代码
                     AppInit.getMyManager().reboot();
+                    Log.e("信息提示","关机了");
                 }
             };
             t.scheduleAtFixedRate(task, startTime, daySpan);
         } catch (ParseException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onAI(int num, int cmdType, int[] value) {
+        if (netDa.getCmd().cmdType_ai == cmdType) {
+            daData.setAI(value);
+            EventBus.getDefault().post(new ADEvent(daData, String.valueOf(ADNum)));
+            socket_connect = true;
+        }
+    }
+
+    @Override
+    public void onOpen(int num, int state) {
+        if (state == 0) {
+            EventBus.getDefault().post(new ADEvent(null, "数据采集断开"));
+            socket_connect = false;
+        }
+    }
+
+    @Override
+    public void onCmd(int num, int cmdType, byte value) {
+        if (cmdType == netDa.getCmd().cmdType_di) {
+            //Lg.v("onDI:",""+cmdType+"_"+value);
+            daData.setDI(value);
         }
     }
 }

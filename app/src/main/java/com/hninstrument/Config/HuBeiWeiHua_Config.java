@@ -67,11 +67,21 @@ public class HuBeiWeiHua_Config extends BaseConfig{
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean disAlarm() {
+        return true;
+    }
+
+    @Override
+    public boolean collectBox() {
+        return true;
+    }
+
+    @Override
+    public boolean noise() {
         return true;
     }
 }

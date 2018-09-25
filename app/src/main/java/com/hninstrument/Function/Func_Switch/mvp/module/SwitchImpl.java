@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 
 
+import com.hninstrument.AppInit;
 
 import java.util.Calendar;
 import java.util.Timer;
@@ -54,8 +55,15 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     @Override
     public void onOpen(ISwitchingListener listener) {
         this.listener = listener;
-        setDevName("/dev/ttyS0");
-        open(115200);
+        if(Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+1,AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+9)) >= 20180903){
+            setDevName("/dev/ttyS2");
+            open(115200);
+        }else{
+            setDevName("/dev/ttyS0");
+            open(115200);
+        }
+
+
     }
 
     @Override

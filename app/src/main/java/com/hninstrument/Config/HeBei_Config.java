@@ -70,4 +70,14 @@ public class HeBei_Config extends BaseConfig {
     public boolean disAlarm() {
         return true;
     }
+
+    @Override
+    public boolean collectBox() {
+        return false;
+    }
+
+    @Override
+    public boolean noise() {
+        return false;
+    }
 }

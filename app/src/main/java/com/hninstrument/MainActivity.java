@@ -37,6 +37,8 @@ import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
@@ -78,7 +80,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cbdi.drv.card.CardInfoRk123x;
-import cbdi.log.Lg;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -183,7 +184,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     @OnClick(R.id.iv_lock)
     void showMessage() {
-
         msg_daid.setText("设备ID：" + config.getString("devid"));
         if (TextUtils.isEmpty(NetworkUtils.getIPAddress(true))) {
             msg_ip.setText("IP地址：无法获取IP地址");
@@ -200,7 +200,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             msg_ipmode.setText("当前固件版本过低，无法获取以太网设置模式");
         }
         if (NetworkUtils.isConnected()) {
-            msg_network.setText("连接网络成功");
+            msg_network.setText("网口可正常通信");
         } else {
             msg_network.setText("连接网络失败，请检查网线连接状态");
         }
@@ -237,8 +237,12 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Lg.e("mainactivity", "oncreate");
-        setContentView(R.layout.activity_main);
+        if (AppInit.getInstrumentConfig().collectBox()) {
+            viewbyHuBei();
+        } else {
+            setContentView(R.layout.activity_main);
+        }
+
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         if (ins_type.isTemHum()) {
@@ -283,7 +287,10 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         IpviewInit();
         messageInit();
         AppInit.getMyManager().ethEnabled(true);
-        MediaHelper.mediaOpen();
+        if(AppInit.getInstrumentConfig().noise()){
+            MediaHelper.mediaOpen();
+        }
+
     }
 
     private void ServerInput() {
@@ -413,7 +420,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             ToastUtils.showLong("IP地址输入格式有误，请重试");
                         }
                     } else {
-                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(32, 40)) >= 20171212) {
+                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+1,AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+9)) >= 20171212) {
                             AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
                             ToastUtils.showLong("已设置为动态IP获取模式");
                             staticIP.put("state", false);
@@ -506,10 +513,16 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
             }
             inputServerView.show();
         } else if (type == 2) {
-            if (staticIP.getBoolean("state")) {
+            if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
+                ipCheckBox.setChecked(false);
+            } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
                 ipCheckBox.setChecked(true);
             } else {
-                ipCheckBox.setChecked(false);
+                if (staticIP.getBoolean("state")) {
+                    ipCheckBox.setChecked(true);
+                } else {
+                    ipCheckBox.setChecked(false);
+                }
             }
             if (!TextUtils.isEmpty(staticIP.getString("Static_ip"))) {
                 et_Static_ip.setText(staticIP.getString("Static_ip"));
@@ -549,27 +562,100 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         //stopService(intent);
         disposableTips.dispose();
         AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
-        MediaHelper.mediaRealese();
+        if(AppInit.getInstrumentConfig().noise()){
+            MediaHelper.mediaRealese();
+        }
         EventBus.getDefault().unregister(this);
     }
 
+    TextView tv_ad01;
+
+    TextView tv_ad02;
+
+    TextView tv_ad03;
+
+    TextView tv_ad04;
+
+    TextView tv_ad05;
+
+    TextView tv_ad06;
+
+    TextView tv_ad07;
+
+    TextView tv_ad08;
+
+    ImageView iv_warning;
+
+    private void viewbyHuBei() {
+        setContentView(R.layout.activity_main_byhubei);
+        tv_ad01 = (TextView) findViewById(R.id.tv_ad01);
+        tv_ad02 = (TextView) findViewById(R.id.tv_ad02);
+        tv_ad03 = (TextView) findViewById(R.id.tv_ad03);
+        tv_ad04 = (TextView) findViewById(R.id.tv_ad04);
+        tv_ad05 = (TextView) findViewById(R.id.tv_ad05);
+        tv_ad06 = (TextView) findViewById(R.id.tv_ad06);
+        tv_ad07 = (TextView) findViewById(R.id.tv_ad07);
+        tv_ad08 = (TextView) findViewById(R.id.tv_ad08);
+        iv_warning = (ImageView) findViewById(R.id.iv_warning);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onGetAIEvent(ADEvent event) {
+        if (AppInit.getInstrumentConfig().collectBox()) {
+            if (event.getData() != null) {
+                switch (Integer.parseInt(event.getMessage())) {
+                    case 8:
+                        tv_ad08.setText(event.getData().getAI(7).getName() + ":" + event.getData().getAI(7).getVal() + event.getData().getAI(7).getUnit());
+                    case 7:
+                        tv_ad07.setText(event.getData().getAI(6).getName() + ":" + event.getData().getAI(6).getVal() + event.getData().getAI(6).getUnit());
+                    case 6:
+                        tv_ad06.setText(event.getData().getAI(5).getName() + ":" + event.getData().getAI(5).getVal() + event.getData().getAI(5).getUnit());
+                    case 5:
+                        tv_ad05.setText(event.getData().getAI(4).getName() + ":" + event.getData().getAI(4).getVal() + event.getData().getAI(4).getUnit());
+                    case 4:
+                        tv_ad04.setText(event.getData().getAI(3).getName() + ":" + event.getData().getAI(3).getVal() + event.getData().getAI(3).getUnit());
+                    case 3:
+                        tv_ad03.setText(event.getData().getAI(2).getName() + ":" + event.getData().getAI(2).getVal() + event.getData().getAI(2).getUnit());
+                    case 2:
+                        tv_ad02.setText(event.getData().getAI(1).getName() + ":" + event.getData().getAI(1).getVal() + event.getData().getAI(1).getUnit());
+                    case 1:
+                        tv_ad01.setText(event.getData().getAI(0).getName() + ":" + event.getData().getAI(0).getVal() + event.getData().getAI(0).getUnit());
+                    default:
+                        iv_warning.setVisibility(View.GONE);
+                        break;
+                }
+            } else {
+                iv_warning.setVisibility(View.VISIBLE);
+                tv_ad01.setText(event.getMessage());
+                tv_ad02.setText(null);
+                tv_ad03.setText(null);
+                tv_ad04.setText(null);
+                tv_ad05.setText(null);
+                tv_ad06.setText(null);
+                tv_ad07.setText(null);
+                tv_ad08.setText(null);
+            }
+        }
+    }
 
     boolean networkState;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetNetworkEvent(NetworkEvent event) {
         if (event.getNetwork_state()) {
+
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
             if (!networkState) {
+                Log.e("信息提示", "重新联网了");
                 networkState = true;
                 final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
                 List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
-                if (list.size() > 20) {
-                    idp.stopReadCard();
-                    MediaHelper.play(MediaHelper.Text.wait_reupload);
-                }
+//                if (list.size() > 20) {
+//                    idp.stopReadCard();
+//                    MediaHelper.play(MediaHelper.Text.wait_reupload);
+//                }
                 for (final ReUploadBean bean : list) {
-                    if(bean.getContent()!=null){
+                    if (bean.getContent() != null) {
                         if (bean.getType_patrol() != 0) {
                             connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid") + "&checkType=" + bean.getType_patrol(),
                                     config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
@@ -597,7 +683,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                         }
                                     });
                         }
-                    }else{
+                    } else {
                         connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
                                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                                     @Override
@@ -613,7 +699,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     }
 
                 }
-                idp.readCard();
+//                idp.readCard();
                 MediaHelper.play(MediaHelper.Text.waiting);
             }
         } else {
@@ -631,7 +717,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAlarmEvent(AlarmEvent event) {
         tips.setText("开门报警已被触发");
-        //AppInit.getSpeaker().playText("开门报警已被触发");
+        MediaHelper.play(MediaHelper.Text.alarm);
     }
 
 
@@ -674,7 +760,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     EventBus.getDefault().post(new CloseDoorEvent());
                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
                     tips.setText("已进入设防状态");
-                    MediaHelper.play(MediaHelper.Text.relock_opt);
+                    // MediaHelper.play(MediaHelper.Text.relock_opt);
                 }
                 if (!AppInit.getInstrumentConfig().isGetOneShot()) {
                     pp.capture();
@@ -757,8 +843,14 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 idp.readCard();
             }
         } else if (persontype.equals("2")) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
             checkRecord(2);
         } else if (persontype.equals("3")) {
+            if (checkChange != null) {
+                checkChange.dispose();
+            }
             checkRecord(3);
         } else if (persontype.equals("0")) {
             unknownPersonData();
@@ -770,33 +862,67 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         Intent checked = new Intent(MainActivity.this, TimeCheckReceiver.class);
         checked.setAction("checked");
         sendBroadcast(checked);
-        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=" + type,
-                config.getString("ServerId"),
-                new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
-                new ServerConnectionUtil.Callback() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (!getState(Two_man_OperateState.class)) {
-                            operation.setState(new No_one_OperateState());
-                        }
-                        captured1.setImageBitmap(null);
-                        pp.setDisplay(surfaceView.getHolder());
-                        idp.readCard();
-                        if (response != null) {
-                            if (response.startsWith("true")) {
-                                tips.setText("巡检数据：巡检成功");
-                                MediaHelper.play(MediaHelper.Text.msg_patrol);
-                            } else {
-                                tips.setText("巡检数据：上传失败");
-                                MediaHelper.play(MediaHelper.Text.err_upload);
+
+        if (checkChange != null && !checkChange.isDisposed()) {
+            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=" + type,
+                    config.getString("ServerId"),
+                    new UpCheckRecordData().toCheckRecordData(person1.getCardId(),/*cardInfo.cardId(),*/ person1.getPhoto(), person1.getName()).toByteArray(),
+                    new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (!getState(Two_man_OperateState.class)) {
+                                operation.setState(new No_one_OperateState());
                             }
-                        } else {
-                            tips.setText("巡检数据：无法连接到服务器");
-                            MediaHelper.play(MediaHelper.Text.err_connect);
-                            mdaoSession.insert(new ReUploadBean(null, "dataType=checkRecord", new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), type));
+                            captured1.setImageBitmap(null);
+                            pp.setDisplay(surfaceView.getHolder());
+                            idp.readCard();
+                            if (response != null) {
+                                if (response.startsWith("true")) {
+                                    tips.setText("巡检数据：巡检成功");
+                                    MediaHelper.play(MediaHelper.Text.msg_patrol);
+                                } else {
+                                    tips.setText("巡检数据：上传失败");
+                                    MediaHelper.play(MediaHelper.Text.err_upload);
+                                }
+                            } else {
+                                tips.setText("巡检数据：无法连接到服务器");
+                                MediaHelper.play(MediaHelper.Text.err_connect);
+                                mdaoSession.insert(new ReUploadBean(null, "dataType=checkRecord", new UpCheckRecordData().toCheckRecordData(person1.getCardId(),/*cardInfo.cardId(),*/ person1.getPhoto(), person1.getName()).toByteArray(), type));
+                            }
                         }
-                    }
-                });
+                    });
+        } else {
+            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=" + type,
+                    config.getString("ServerId"),
+                    new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(),
+                    new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (!getState(Two_man_OperateState.class)) {
+                                operation.setState(new No_one_OperateState());
+                            }
+                            captured1.setImageBitmap(null);
+                            pp.setDisplay(surfaceView.getHolder());
+                            idp.readCard();
+                            if (response != null) {
+                                if (response.startsWith("true")) {
+                                    tips.setText("巡检数据：巡检成功");
+                                    MediaHelper.play(MediaHelper.Text.msg_patrol);
+                                } else {
+                                    tips.setText("巡检数据：上传失败");
+                                    MediaHelper.play(MediaHelper.Text.err_upload);
+                                }
+                            } else {
+                                tips.setText("巡检数据：无法连接到服务器");
+                                MediaHelper.play(MediaHelper.Text.err_connect);
+                                mdaoSession.insert(new ReUploadBean(null, "dataType=checkRecord", new UpCheckRecordData().toCheckRecordData(cardInfo.cardId(), photo, cardInfo.name()).toByteArray(), type));
+                            }
+                        }
+                    });
+
+        }
+
+
     }
 
     private void face_upData() {
@@ -930,6 +1056,9 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             if (response.startsWith("true")) {
                                 tips.setText("来访人员信息已上传");
                                 MediaHelper.play(MediaHelper.Text.msg_visit);
+                            } else {
+                                tips.setText("设备尚未登记,请前往系统进行登记操作");
+                                MediaHelper.play(MediaHelper.Text.no_registration);
                             }
                         } else {
                             tips.setText("来访人员信息：无法连接到服务器");
@@ -940,7 +1069,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         idp.readCard();
                     }
                 });
-
     }
 
     private void face_openDoorUpData() {

@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.greendao.DaoMaster;
@@ -68,7 +69,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HuBeiWeiHua_Config();
+        InstrumentConfig = new GDMB_Config();
 
         manager = MyManager.getInstance(this);
 

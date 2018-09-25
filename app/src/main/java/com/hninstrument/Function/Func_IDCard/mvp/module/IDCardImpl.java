@@ -3,6 +3,8 @@ package com.hninstrument.Function.Func_IDCard.mvp.module;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.hninstrument.AppInit;
+
 import cbdi.drv.card.CardInfoRk123x;
 import cbdi.drv.card.ICardState;
 import cbdi.log.Lg;
@@ -22,21 +24,40 @@ public class IDCardImpl implements IIDCard {
     @Override
     public void onOpen(IIdCardListener listener) {
         mylistener = listener;
-        try {
-            //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
-            cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
-            cardInfo.setDevType("rk3368");
-            cdevfd = cardInfo.open();
-            if (cdevfd >= 0) {
-                Log.e(TAG, "打开身份证读卡器成功");
-            } else {
-                cdevfd = -1;
-                Log.e(TAG, "打开身份证读卡器失败");
-            }
+        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903) {
+            try {
+                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
+                cardInfo = new CardInfoRk123x("/dev/ttyS0", m_onCardState);
+                cardInfo.setDevType("rk3368");
+                cdevfd = cardInfo.open();
+                if (cdevfd >= 0) {
+                    Log.e(TAG, "打开身份证读卡器成功");
+                } else {
+                    cdevfd = -1;
+                    Log.e(TAG, "打开身份证读卡器失败");
+                }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
+                cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
+                cardInfo.setDevType("rk3368");
+                cdevfd = cardInfo.open();
+                if (cdevfd >= 0) {
+                    Log.e(TAG, "打开身份证读卡器成功");
+                } else {
+                    cdevfd = -1;
+                    Log.e(TAG, "打开身份证读卡器失败");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
 
     }
 
