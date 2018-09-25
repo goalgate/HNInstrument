@@ -24,11 +24,11 @@
         <receiver
             android:name=".Receiver.TimeCheckReceiver">
         </receiver>
-      <!--  <receiver android:name=".Receiver.BootBroadcastReceiver">
+        <receiver android:name=".Receiver.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
-        </receiver>-->
+        </receiver>
 
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -50,13 +50,13 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
-
     <!-- 开机启动 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
+
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
 </manifest>

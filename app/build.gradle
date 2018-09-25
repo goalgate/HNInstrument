@@ -8,9 +8,11 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "2.3"
+        versionName "2.7"
+//        湖北危化2.5
 //        黑龙江现版本2.1
-//        广东民爆2.4
+//        广东民爆2.6
+//        河北民爆2.3
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -79,4 +81,6 @@ dependencies {
     compile files('libs/usc.jar')
     compile 'org.greenrobot:greendao:3.2.2'
     compile 'org.greenrobot:greendao-generator:3.2.2'
+    compile 'net.zetetic:android-database-sqlcipher:3.5.2'
+
 }
