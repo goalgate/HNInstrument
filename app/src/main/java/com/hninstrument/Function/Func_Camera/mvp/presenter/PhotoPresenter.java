@@ -84,7 +84,6 @@ public class PhotoPresenter {
         photoModule.setParameter(surfaceHolder);
     }
 
-
     public void setDisplay(SurfaceHolder surfaceHolder){
         photoModule.setDisplay(surfaceHolder);
     }

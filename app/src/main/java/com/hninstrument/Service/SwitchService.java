@@ -20,6 +20,7 @@ import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SH_Config;
 import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
@@ -129,6 +130,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
         sp.SwitchPresenterSetView(this);
         EventBus.getDefault().register(this);
         lock = Lock.getInstance(new State_Lockup(sp));
+        autoUpdate();
         dis_testNet = Observable.interval(5, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
@@ -141,7 +143,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                                             if (response.startsWith("true")) {
                                                 if (!network_State) {
                                                     updata();
-                                                    autoUpdate();
                                                 }
                                                 network_State = true;
                                                 EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
@@ -202,7 +203,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                     });
 
         }
-        if (AppInit.getInstrumentConfig().collectBox()) {
+        if (type.collectBox()) {
             netDa = new SocketBuilder()
                     .setBuilderNumber(1)
                     .setBuilderEvent(this)
@@ -307,7 +308,9 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
         lock.doNext();
-
+        if(type.getClass().getName().equals(SH_Config.class.getName())){
+            sp.doorOpen();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -380,7 +383,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     boolean socket_connect = false;
 
     private void StateRecord() {
-        if (AppInit.getInstrumentConfig().collectBox()) {
+        if (type.collectBox()) {
             String extra = "";
             if (socket_connect) {
                 for (int i = 0; i < ADNum; i++) {

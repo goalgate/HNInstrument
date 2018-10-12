@@ -80,6 +80,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cbdi.drv.card.CardInfoRk123x;
+import cbdi.drv.card.ICardInfo;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -104,7 +105,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     Disposable disposableTips;
 
-    CardInfoRk123x cardInfo;
+//    CardInfoRk123x cardInfo;
+    ICardInfo cardInfo;
 
     ServerConnectionUtil connectionUtil = new ServerConnectionUtil();
 
@@ -237,7 +239,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (AppInit.getInstrumentConfig().collectBox()) {
+        if (ins_type.collectBox()) {
             viewbyHuBei();
         } else {
             setContentView(R.layout.activity_main);
@@ -287,7 +289,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         IpviewInit();
         messageInit();
         AppInit.getMyManager().ethEnabled(true);
-        if(AppInit.getInstrumentConfig().noise()){
+        if (ins_type.noise()) {
             MediaHelper.mediaOpen();
         }
 
@@ -420,7 +422,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             ToastUtils.showLong("IP地址输入格式有误，请重试");
                         }
                     } else {
-                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+1,AppInit.getMyManager().getAndroidDisplay().indexOf(".20")+9)) >= 20171212) {
+                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20171212) {
                             AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
                             ToastUtils.showLong("已设置为动态IP获取模式");
                             staticIP.put("state", false);
@@ -562,7 +564,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         //stopService(intent);
         disposableTips.dispose();
         AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
-        if(AppInit.getInstrumentConfig().noise()){
+        if (ins_type.noise()) {
             MediaHelper.mediaRealese();
         }
         EventBus.getDefault().unregister(this);
@@ -601,7 +603,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAIEvent(ADEvent event) {
-        if (AppInit.getInstrumentConfig().collectBox()) {
+        if (ins_type.collectBox()) {
             if (event.getData() != null) {
                 switch (Integer.parseInt(event.getMessage())) {
                     case 8:
@@ -733,8 +735,11 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
 
     Disposable checkChange;
 
+//    @Override
+//    public void onsetCardInfo(final CardInfoRk123x cardInfo) {
+
     @Override
-    public void onsetCardInfo(final CardInfoRk123x cardInfo) {
+    public void onsetCardInfo(final ICardInfo cardInfo) {
         if (messageAlert.isShowing()) {
             msg_iccard.setText("身份证号为：" + cardInfo.cardId());
         } else {
@@ -762,14 +767,14 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     tips.setText("已进入设防状态");
                     // MediaHelper.play(MediaHelper.Text.relock_opt);
                 }
-                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                if (!ins_type.isGetOneShot()) {
                     pp.capture();
                 } else {
                     pp.getOneShut();
                 }
                 idp.stopReadCard();
             } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                if (!ins_type.isGetOneShot()) {
                     pp.capture();
                 } else {
                     pp.getOneShut();
@@ -793,7 +798,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                             person2.setName(cardInfo.name());
                                         }
                                     }
-                                    if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                                    if (!ins_type.isGetOneShot()) {
                                         pp.capture();
                                     } else {
                                         pp.getOneShut();
@@ -802,7 +807,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                                 }
                             } else {
                                 persontype = "0";
-                                if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                                if (!ins_type.isGetOneShot()) {
                                     pp.capture();
                                 } else {
                                     pp.getOneShut();
@@ -813,7 +818,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                             tips.setText("人员身份查询：服务器上传出错");
 //                            MediaHelper.play(MediaHelper.Text.err_connect);
                             persontype = "0";
-                            if (!AppInit.getInstrumentConfig().isGetOneShot()) {
+                            if (!ins_type.isGetOneShot()) {
                                 pp.capture();
                             } else {
                                 pp.getOneShut();

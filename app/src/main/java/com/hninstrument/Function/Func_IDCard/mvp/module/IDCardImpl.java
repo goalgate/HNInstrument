@@ -5,7 +5,9 @@ import android.util.Log;
 
 import com.hninstrument.AppInit;
 
+import cbdi.drv.card.CardInfo;
 import cbdi.drv.card.CardInfoRk123x;
+import cbdi.drv.card.ICardInfo;
 import cbdi.drv.card.ICardState;
 import cbdi.log.Lg;
 
@@ -17,14 +19,32 @@ import cbdi.log.Lg;
 public class IDCardImpl implements IIDCard {
     private static final String TAG = "信息提示";
     private int cdevfd = -1;
-    private static CardInfoRk123x cardInfo = null;
+    //private static CardInfoRk123x cardInfo = null;
+    private static ICardInfo cardInfo = null;
     IIdCardListener mylistener;
 
 
     @Override
     public void onOpen(IIdCardListener listener) {
         mylistener = listener;
-        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903) {
+        if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3368")){
+            try {
+                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
+                cardInfo = new CardInfo("/dev/ttyS0", m_onCardState);
+                cardInfo.setDevType("rk3368");
+                cdevfd = cardInfo.open();
+                if (cdevfd >= 0) {
+                    Log.e(TAG, "打开身份证读卡器成功");
+                } else {
+                    cdevfd = -1;
+                    Log.e(TAG, "打开身份证读卡器失败");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903) {
             try {
                 //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
                 cardInfo = new CardInfoRk123x("/dev/ttyS0", m_onCardState);

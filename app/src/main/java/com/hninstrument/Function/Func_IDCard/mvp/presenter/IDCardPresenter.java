@@ -7,6 +7,7 @@ import com.hninstrument.Function.Func_IDCard.mvp.module.IIDCard;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
 
 import cbdi.drv.card.CardInfoRk123x;
+import cbdi.drv.card.ICardInfo;
 
 
 /**
@@ -40,8 +41,14 @@ public class IDCardPresenter {
                 view.onsetCardImg(bmp);
             }
 
+//            @Override
+//            public void onSetInfo(CardInfoRk123x cardInfo) {
+//                view.onsetCardInfo(cardInfo);
+//            }
+
+
             @Override
-            public void onSetInfo(CardInfoRk123x cardInfo) {
+            public void onSetInfo(ICardInfo cardInfo) {
                 view.onsetCardInfo(cardInfo);
             }
         });

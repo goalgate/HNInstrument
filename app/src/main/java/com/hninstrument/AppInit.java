@@ -10,6 +10,8 @@ import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SH_Config;
+import com.hninstrument.Config.XA_Config;
 import com.hninstrument.greendao.DaoMaster;
 import com.hninstrument.greendao.DaoSession;
 import com.squareup.leakcanary.LeakCanary;

@@ -18,7 +18,7 @@ import cbdi.log.Lg;
 
 // android:sharedUserId="android.uid.system"
 //身份证读取类
-public class CardInfo extends SerialPortCom {
+public class CardInfo extends SerialPortCom implements ICardInfo{
     private final int t_name = 1;
     private final int t_sex = 2;
     private final int t_nation = 3;

@@ -8,6 +8,8 @@ import android.support.annotation.Nullable;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SH_Config;
 import com.hninstrument.R;
 
 /**
@@ -31,7 +33,16 @@ public class SplashActivity extends Activity {
                 SP_Config.put("devid",SP_Config.getString("devid").substring(0,6)+"3"+SP_Config.getString("devid").substring(7,10));
                 ToastUtils.showLong("设备号已成功转换");
             }
-            ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
+            if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");
+
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SH_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
+            }else{
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
+                //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
+            }
+
             this.finish();
         }
     }

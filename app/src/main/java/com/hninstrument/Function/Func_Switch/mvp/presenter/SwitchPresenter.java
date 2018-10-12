@@ -66,4 +66,16 @@ public class SwitchPresenter {
     public void buzzOff(){
         switchingModule.onBuzzOff();
     }
+
+    public void doorOpen(){
+        switchingModule.onDoorOpen();
+    }
+
+    public void greenLight(){
+        switchingModule.onGreenLightBlink();
+    }
+
+    public void redLight(){
+        switchingModule.onRedLightBlink();
+    }
 }

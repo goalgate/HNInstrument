@@ -18,6 +18,11 @@ public interface ISwitching {
 
     void onBuzzOff();
 
+    void onDoorOpen();
+
+    void onRedLightBlink();
+
+    void onGreenLightBlink();
     interface ISwitchingListener{
 
         void onSwitchingText(String value);

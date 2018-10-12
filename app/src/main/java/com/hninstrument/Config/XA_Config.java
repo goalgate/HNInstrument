@@ -33,7 +33,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
 
     @Override
@@ -68,7 +68,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
     }
 
     @Override
