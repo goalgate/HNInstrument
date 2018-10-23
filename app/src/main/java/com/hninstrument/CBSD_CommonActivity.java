@@ -68,8 +68,6 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
 
     Disposable disposableTips;
 
-    //    CardInfoRk123x cardInfo;
-
     @BindView(R.id.gestures_overlay)
     GestureOverlayView gestures;
 
@@ -154,50 +152,9 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
     public void onOptionType(Button view, int type) {
         personWindow.dismiss();
         if (type == 1) {
-            Bitmap mBitmap = null;
-            etName.setText(config.getString("ServerId"));
-            DAInfo di = new DAInfo();
-            try {
-                di.setId(config.getString("devid"));
-                di.setName(ins_type.getName());
-                di.setModel(ins_type.getModel());
-                di.setPower(ins_type.getPower());
-                di.setSoftwareVer(AppUtils.getAppVersionName());
-                di.setProject(ins_type.getProject());
-                mBitmap = di.daInfoBmp();
-            } catch (Exception ex) {
-            }
-            if (mBitmap != null) {
-                QRview.setImageBitmap(mBitmap);
-            }
-            inputServerView.show();
+            alert_server.show();
         } else if (type == 2) {
-            if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
-                ipCheckBox.setChecked(false);
-            } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
-                ipCheckBox.setChecked(true);
-            } else {
-                if (staticIP.getBoolean("state")) {
-                    ipCheckBox.setChecked(true);
-                } else {
-                    ipCheckBox.setChecked(false);
-                }
-            }
-            if (!TextUtils.isEmpty(staticIP.getString("Static_ip"))) {
-                et_Static_ip.setText(staticIP.getString("Static_ip"));
-                et_Static_gateway.setText(staticIP.getString("Static_gateway"));
-                et_Static_mask.setText(staticIP.getString("Static_mask"));
-                et_Static_dns1.setText(staticIP.getString("Static_dns1"));
-                et_Static_dns2.setText(staticIP.getString("Static_dns2"));
-            }
-            if (ipCheckBox.isChecked()) {
-                et_Static_ip.setEnabled(true);
-                et_Static_mask.setEnabled(true);
-                et_Static_gateway.setEnabled(true);
-                et_Static_dns1.setEnabled(true);
-                et_Static_dns2.setEnabled(true);
-            }
-            inputStaticIPView.show();
+            alert_ip.show();
         }
     }
 
@@ -231,13 +188,10 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
         headphoto = bmp;
     }
 
-//    @Override
-//    public void onsetCardInfo(final CardInfoRk123x cardInfo) {
-
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
-        if (messageAlert.isShowing()) {
-            msg_iccard.setText("身份证号为：" + cardInfo.cardId());
+        if (alert_message.Showing()) {
+            alert_message.setICCardText(cardInfo.cardId());
         } else {
             this.cardInfo = cardInfo;
             tips.setText(cardInfo.name() + "刷卡中，请稍后");

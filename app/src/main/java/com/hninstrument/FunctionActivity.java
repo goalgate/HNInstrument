@@ -1,10 +1,14 @@
 package com.hninstrument;
 
 import android.app.Activity;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.SurfaceView;
 
 import com.blankj.utilcode.util.BarUtils;
+import com.hninstrument.Alerts.Alert_IP;
+import com.hninstrument.Alerts.Alert_Message;
+import com.hninstrument.Alerts.Alert_Server;
 import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
@@ -22,12 +26,19 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
     public PhotoPresenter pp = PhotoPresenter.getInstance();
 
     public SurfaceView surfaceView;
+
+    Alert_Message alert_message = new Alert_Message(this);
+
+    Alert_Server alert_server = new Alert_Server(this);
+
+    Alert_IP alert_ip = new Alert_IP(this);
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         BarUtils.hideStatusBar(this);
         idp.idCardOpen();
         pp.initCamera();
+
     }
 
     @Override

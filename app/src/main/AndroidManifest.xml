@@ -19,7 +19,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".StartActivity"></activity>
-        <activity android:name=".MainActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".MainActivity" android:launchMode="singleInstance"></activity>        <activity android:name=".cHuBeiWeiHuaActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".CBSD_ShangHaiActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".CBSD_HuBeiWeiHuaActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".CBSD_CommonActivity" android:launchMode="singleInstance"></activity>
         <service android:name=".Service.SwitchService"></service>
         <receiver
             android:name=".Receiver.TimeCheckReceiver">

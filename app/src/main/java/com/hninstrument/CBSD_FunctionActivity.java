@@ -25,6 +25,9 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Alerts.Alert_IP;
+import com.hninstrument.Alerts.Alert_Message;
+import com.hninstrument.Alerts.Alert_Server;
 import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
@@ -62,7 +65,10 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
@@ -74,8 +80,6 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 public abstract class CBSD_FunctionActivity extends RxActivity implements IPhotoView, IIDCardView, AddPersonWindow.OptionTypeListener {
     public IDCardPresenter idp = IDCardPresenter.getInstance();
@@ -102,15 +106,9 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
 
     BaseConfig ins_type = AppInit.getInstrumentConfig();
 
-    SPUtils staticIP = SPUtils.getInstance("staticIP");
-
     AddPersonWindow personWindow;
 
     ServerConnectionUtil connectionUtil = new ServerConnectionUtil();
-
-    final static String STATICIP = "StaticIp";
-
-    final static String DHCP = "DHCP";
 
     ICardInfo cardInfo;
 
@@ -146,6 +144,12 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @BindView(R.id.iv_temp)
     ImageView iv_temperature;
 
+    Alert_Message alert_message = new Alert_Message(this);
+
+    Alert_Server alert_server = new Alert_Server(this);
+
+    Alert_IP alert_ip = new Alert_IP(this);
+
     @OnClick(R.id.iv_network)
     void show() {
         personWindow = new AddPersonWindow(this);
@@ -155,34 +159,35 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
 
     @OnClick(R.id.iv_lock)
     void showMessage() {
-        msg_daid.setText("设备ID：" + config.getString("devid"));
-        if (TextUtils.isEmpty(NetworkUtils.getIPAddress(true))) {
-            msg_ip.setText("IP地址：无法获取IP地址");
-        } else {
-            msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
-        }
-        msg_mac.setText("MAC地址：" + new NetInfo().getMac());
-        msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
-        if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
-            msg_ipmode.setText("当前以太网为动态IP获取模式");
-        } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
-            msg_ipmode.setText("当前以太网为静态IP获取模式");
-        } else {
-            msg_ipmode.setText("当前固件版本过低，无法获取以太网设置模式");
-        }
-        if (NetworkUtils.isConnected()) {
-            msg_network.setText("网口可正常通信");
-        } else {
-            msg_network.setText("连接网络失败，请检查网线连接状态");
-        }
-        msg_iccard.setText("请放置身份证进行判断");
-
-        if (Lock.getInstance().getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
-            msg_lockState.setText("仓库处于上锁状态");
-        } else {
-            msg_lockState.setText("仓库处于解锁状态");
-        }
-        messageAlert.show();
+        alert_message.showMessage();
+//        msg_daid.setText("设备ID：" + config.getString("devid"));
+//        if (TextUtils.isEmpty(NetworkUtils.getIPAddress(true))) {
+//            msg_ip.setText("IP地址：无法获取IP地址");
+//        } else {
+//            msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
+//        }
+//        msg_mac.setText("MAC地址：" + new NetInfo().getMac());
+//        msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
+//        if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
+//            msg_ipmode.setText("当前以太网为动态IP获取模式");
+//        } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
+//            msg_ipmode.setText("当前以太网为静态IP获取模式");
+//        } else {
+//            msg_ipmode.setText("当前固件版本过低，无法获取以太网设置模式");
+//        }
+//        if (NetworkUtils.isConnected()) {
+//            msg_network.setText("网口可正常通信");
+//        } else {
+//            msg_network.setText("连接网络失败，请检查网线连接状态");
+//        }
+//        msg_iccard.setText("请放置身份证进行判断");
+//
+//        if (Lock.getInstance().getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
+//            msg_lockState.setText("仓库处于上锁状态");
+//        } else {
+//            msg_lockState.setText("仓库处于解锁状态");
+//        }
+//        messageAlert.show();
     }
 
 
@@ -193,10 +198,14 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         BarUtils.hideStatusBar(this);
         idp.idCardOpen();
         pp.initCamera();
-
-        messageInit();
-        ServerInput();
-        IpviewInit();
+        alert_message.messageInit();
+        alert_ip.IpviewInit();
+        alert_server.serverInit(new Alert_Server.Server_Callback() {
+            @Override
+            public void setNetworkBmp() {
+                iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
+            }
+        });
         AppInit.getMyManager().ethEnabled(true);
         operation = new Operation(new No_one_OperateState());
         if (ins_type.noise()) {
@@ -248,217 +257,6 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
             MediaHelper.mediaRealese();
         }
     }
-
-    AlertView messageAlert;
-    private TextView msg_daid;
-    private TextView msg_ip;
-    private TextView msg_mac;
-    private TextView msg_software;
-    private TextView msg_ipmode;
-    private TextView msg_network;
-    TextView msg_iccard;
-    private TextView msg_lockState;
-
-    private void messageInit() {
-        ViewGroup messageView = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.message_form, null);
-        msg_daid = (TextView) messageView.findViewById(R.id.msg_daid);
-        msg_ip = (TextView) messageView.findViewById(R.id.msg_ip);
-        msg_mac = (TextView) messageView.findViewById(R.id.msg_mac);
-        msg_software = (TextView) messageView.findViewById(R.id.msg_software);
-        msg_ipmode = (TextView) messageView.findViewById(R.id.msg_ipmode);
-        msg_network = (TextView) messageView.findViewById(R.id.msg_network);
-        msg_iccard = (TextView) messageView.findViewById(R.id.msg_iccard);
-        msg_lockState = (TextView) messageView.findViewById(R.id.msg_lockState);
-        messageAlert = new AlertView("信息显示", null, null, new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-
-            }
-        });
-        messageAlert.addExtView(messageView);
-    }
-
-    EditText etName;
-    ImageView QRview;
-    AlertView inputServerView;
-    String url;
-    private void ServerInput() {
-        ViewGroup extView1 = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputserver_form, null);
-        etName = (EditText) extView1.findViewById(R.id.server_input);
-        QRview = (ImageView) extView1.findViewById(R.id.QRimage);
-        inputServerView = new AlertView("服务器设置,软件版本号为" + AppUtils.getAppVersionName(), null, "取消", new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-                if (position == 0) {
-                    if (!etName.getText().toString().replaceAll(" ", "").endsWith("/")) {
-                        url = etName.getText().toString() + "/";
-                    } else {
-                        url = etName.getText().toString();
-                    }
-                    connectionUtil.post(url + ins_type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test", url
-                            , new ServerConnectionUtil.Callback() {
-                                @Override
-                                public void onResponse(String response) {
-                                    if (response != null) {
-                                        if (response.startsWith("true")) {
-                                            config.put("ServerId", url);
-                                            ToastUtils.showLong("连接服务器成功");
-                                            iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-                                        } else {
-                                            ToastUtils.showLong("设备验证错误");
-                                        }
-                                    } else {
-                                        ToastUtils.showLong("服务器连接失败");
-                                    }
-                                }
-                            });
-                }
-            }
-        });
-        inputServerView.addExtView(extView1);
-    }
-
-    long count = 5;
-    AlertView inputStaticIPView;
-    EditText et_Static_ip;
-    EditText et_Static_mask;
-    EditText et_Static_gateway;
-    EditText et_Static_dns1;
-    EditText et_Static_dns2;
-    CheckBox ipCheckBox;
-
-    private void IpviewInit() {
-        ViewGroup ipview = (ViewGroup) LayoutInflater.from(this).inflate(R.layout.inputstaticip_form, null);
-        ipCheckBox = (CheckBox) ipview.findViewById(R.id.ip_checkBox);
-        et_Static_ip = (EditText) ipview.findViewById(R.id.static_ip);
-        et_Static_mask = (EditText) ipview.findViewById(R.id.static_mask);
-        et_Static_gateway = (EditText) ipview.findViewById(R.id.static_gateway);
-        et_Static_dns1 = (EditText) ipview.findViewById(R.id.static_DNS1);
-        et_Static_dns2 = (EditText) ipview.findViewById(R.id.static_DNS2);
-        ipCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    et_Static_ip.setEnabled(true);
-                    et_Static_mask.setEnabled(true);
-                    et_Static_gateway.setEnabled(true);
-                    et_Static_dns1.setEnabled(true);
-                    et_Static_dns2.setEnabled(true);
-                } else {
-                    et_Static_ip.setEnabled(false);
-                    et_Static_mask.setEnabled(false);
-                    et_Static_gateway.setEnabled(false);
-                    et_Static_dns1.setEnabled(false);
-                    et_Static_dns2.setEnabled(false);
-                }
-            }
-        });
-        inputStaticIPView = new AlertView("设置静态IP", null, "取消", new String[]{"确定"}, null, this, AlertView.Style.Alert, new OnItemClickListener() {
-            @Override
-            public void onItemClick(Object o, int position) {
-                if (position == 0) {
-                    if (ipCheckBox.isChecked()) {
-                        if (RegexUtils.isIP(et_Static_ip.getText().toString()) ||
-                                RegexUtils.isIP(et_Static_mask.getText().toString()) ||
-                                RegexUtils.isIP(et_Static_gateway.getText().toString()) ||
-                                RegexUtils.isIP(et_Static_dns1.getText().toString()) ||
-                                RegexUtils.isIP(et_Static_dns2.getText().toString())) {
-                            staticIP.put("Static_ip", et_Static_ip.getText().toString());
-                            staticIP.put("Static_mask", et_Static_mask.getText().toString());
-                            staticIP.put("Static_gateway", et_Static_gateway.getText().toString());
-                            staticIP.put("Static_dns1", et_Static_dns1.getText().toString());
-                            staticIP.put("Static_dns2", et_Static_dns2.getText().toString());
-                            staticIP.put("state", true);
-                            AppInit.getMyManager().setStaticEthIPAddress(et_Static_ip.getText().toString(),
-                                    et_Static_gateway.getText().toString(), et_Static_mask.getText().toString(),
-                                    et_Static_dns1.getText().toString(), et_Static_dns2.getText().toString());
-                            ToastUtils.showLong("静态IP已设置");
-                            Observable.interval(0, 1, TimeUnit.SECONDS)
-                                    .take(count + 1)
-                                    .map(new Function<Long, Long>() {
-                                        @Override
-                                        public Long apply(@NonNull Long aLong) throws Exception {
-                                            return count - aLong;
-                                        }
-                                    })
-                                    .subscribeOn(Schedulers.io())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Observer<Long>() {
-                                        @Override
-                                        public void onSubscribe(@NonNull Disposable d) {
-
-                                        }
-
-                                        @Override
-                                        public void onNext(@NonNull Long aLong) {
-                                            ToastUtils.showLong(aLong + "秒后重新开机保存设置");
-                                        }
-
-                                        @Override
-                                        public void onError(@NonNull Throwable e) {
-
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-                                            pp.close_Camera();
-                                            AppInit.getMyManager().reboot();
-                                        }
-                                    });
-                        } else {
-                            ToastUtils.showLong("IP地址输入格式有误，请重试");
-                        }
-                    } else {
-                        if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20171212) {
-                            AppInit.getMyManager().setDhcpIpAddress(AppInit.getContext());
-                            ToastUtils.showLong("已设置为动态IP获取模式");
-                            staticIP.put("state", false);
-                            Observable.interval(0, 1, TimeUnit.SECONDS)
-                                    .take(count + 1)
-                                    .map(new Function<Long, Long>() {
-                                        @Override
-                                        public Long apply(@NonNull Long aLong) throws Exception {
-                                            return count - aLong;
-                                        }
-                                    })
-                                    .subscribeOn(Schedulers.io())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new Observer<Long>() {
-                                        @Override
-                                        public void onSubscribe(@NonNull Disposable d) {
-
-                                        }
-
-                                        @Override
-                                        public void onNext(@NonNull Long aLong) {
-                                            ToastUtils.showLong(aLong + "秒后重新开机保存设置");
-                                        }
-
-                                        @Override
-                                        public void onError(@NonNull Throwable e) {
-
-                                        }
-
-                                        @Override
-                                        public void onComplete() {
-                                            pp.close_Camera();
-                                            AppInit.getMyManager().reboot();
-                                        }
-                                    });
-                        } else {
-                            ToastUtils.showLong("该固件版本过低，无法完成到动态获取以太网的转变");
-                        }
-                    }
-                }
-            }
-        });
-        inputStaticIPView.addExtView(ipview);
-
-    }
-
-
-
-
 
     void face_openDoorUpData() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -626,5 +424,13 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     public void onGetAlarmEvent(AlarmEvent event) {
         tips.setText("开门报警已被触发");
         MediaHelper.play(MediaHelper.Text.alarm);
+    }
+
+    protected void takepicture(){
+        if (!ins_type.isGetOneShot()) {
+            pp.capture();
+        } else {
+            pp.getOneShut();
+        }
     }
 }
