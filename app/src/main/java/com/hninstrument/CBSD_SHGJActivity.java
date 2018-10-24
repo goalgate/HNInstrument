@@ -12,34 +12,37 @@ import android.os.Bundle;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.PassEvent;
+import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.State.OperationState.LockingState;
+import com.hninstrument.State.OperationState.OneLockState;
 import com.hninstrument.State.OperationState.OneUnlockState;
 import com.hninstrument.State.OperationState.TwoUnlockState;
 import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
+import com.hninstrument.Tools.VisitBasket;
 import com.jakewharton.rxbinding2.widget.RxTextView;
 import com.trello.rxlifecycle2.android.ActivityEvent;
-
 import org.greenrobot.eventbus.EventBus;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import cbdi.drv.card.ICardInfo;
@@ -53,7 +56,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public class CBSD_CommonActivity extends CBSD_FunctionActivity {
+public class CBSD_SHGJActivity extends CBSD_FunctionActivity {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -62,13 +65,20 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
     @BindView(R.id.gestures_overlay)
     GestureOverlayView gestures;
 
+    @BindView(R.id.countText)
+    TextView countText;
+
+    PersonBean closePeople1 = new PersonBean();
+
+    PersonBean closePeople2 = new PersonBean();
+
     Intent intent;
     GestureLibrary mGestureLib;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_byhubei);
+        setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
 
@@ -111,8 +121,6 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
 
         setGesture();
     }
-
-
 
     private void setGesture() {
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
@@ -179,6 +187,8 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
         headphoto = bmp;
     }
 
+
+    Disposable disposableLock;
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
         if (alert_message.Showing()) {
@@ -197,29 +207,69 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                         tips.setText("请不要连续输入同一个管理员的信息");
                         MediaHelper.play(MediaHelper.Text.err_samePerson);
                         return;
-                    } else {
-                        if (checkChange != null) {
-                            checkChange.dispose();
-                        }
                     }
                 } else if (getState(TwoUnlockState.class)) {
-                    EventBus.getDefault().post(new CloseDoorEvent());
-                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
-                    tips.setText("已进入设防状态");
-                    // MediaHelper.play(MediaHelper.Text.relock_opt);
+                    tips.setText("第一位仓管员尝试上锁,等待第二位仓管员刷卡上锁");
+                    closePeople1.setCardId(cardInfo.cardId());
+                    closePeople1.setName(cardInfo.name());
+                    Observable.interval(0, 1, TimeUnit.SECONDS)
+                            .take(count + 1)
+                            .map(new Function<Long, Long>() {
+                                @Override
+                                public Long apply(@NonNull Long aLong) throws Exception {
+                                    return count - aLong;
+                                }
+                            })
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<Long>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
+                                    disposableLock = d;
+                                }
+
+                                @Override
+                                public void onNext(@NonNull Long aLong) {
+                                    countText.setText(String.valueOf(aLong));
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+                                    countText.setText(null);
+                                    if(visitBasket.empty()){
+                                        ToastUtils.showLong("OK");
+                                    }
+                                    visitBasket.clear();
+                                }
+                            });
+                } else if(getState(OneLockState.class)){
+                    closePeople2.setCardId(cardInfo.cardId());
+                    closePeople2.setName(cardInfo.name());
+                    if (closePeople1.getCardId().equals(closePeople2.getCardId())){
+                        tips.setText("请不要输入同一个管理员的信息");
+                        MediaHelper.play(MediaHelper.Text.err_samePerson);
+                        return;
+                    }else{
+                        if(disposableLock!= null){
+                            disposableLock.dispose();
+                        }
+                        countText.setText(null);
+                        EventBus.getDefault().post(new CloseDoorEvent());
+                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
+                        tips.setText("已进入设防状态");
+                        MediaHelper.play(MediaHelper.Text.relock_opt);
+                    }
+
                 }
-                if (!ins_type.isGetOneShot()) {
-                    pp.capture();
-                } else {
-                    pp.getOneShut();
-                }
+                takepicture();
                 idp.stopReadCard();
             } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-                if (!ins_type.isGetOneShot()) {
-                    pp.capture();
-                } else {
-                    pp.getOneShut();
-                }
+                takepicture();
                 idp.stopReadCard();
             } else {
                 connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
@@ -239,31 +289,19 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                             person2.setName(cardInfo.name());
                                         }
                                     }
-                                    if (!ins_type.isGetOneShot()) {
-                                        pp.capture();
-                                    } else {
-                                        pp.getOneShut();
-                                    }
+                                    takepicture();
                                     idp.stopReadCard();
                                 }
                             } else {
                                 persontype = "0";
-                                if (!ins_type.isGetOneShot()) {
-                                    pp.capture();
-                                } else {
-                                    pp.getOneShut();
-                                }
+                                takepicture();
                                 idp.stopReadCard();
                             }
                         } else {
                             tips.setText("人员身份查询：服务器上传出错");
-//                            MediaHelper.play(MediaHelper.Text.err_connect);
+                            MediaHelper.play(MediaHelper.Text.err_connect);
                             persontype = "0";
-                            if (!ins_type.isGetOneShot()) {
-                                pp.capture();
-                            } else {
-                                pp.getOneShut();
-                            }
+                            takepicture();
                             idp.stopReadCard();
                         }
                     }
@@ -283,6 +321,10 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                 } else {
                     noface_upData();
                 }
+            } else if (getState(OneLockState.class)) {
+                operation.doNext();
+                pp.setDisplay(surfaceView.getHolder());
+                idp.readCard();
             } else if (getState(TwoUnlockState.class)) {
                 operation.doNext();
                 pp.setDisplay(surfaceView.getHolder());
@@ -299,7 +341,8 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
             }
             checkRecord(3);
         } else if (persontype.equals("0")) {
-            unknownPersonData();
+            visit_operate();
+            //unknownPersonData();
         }
     }
 
@@ -313,7 +356,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
             pp.setDisplay(surfaceView.getHolder());
             idp.readCard();
             Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                    .compose(CBSD_CommonActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
+                    .compose(CBSD_SHGJActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Observer<Long>() {
                         @Override
@@ -341,6 +384,9 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
             captured1.setImageBitmap(null);
             EventBus.getDefault().post(new PassEvent());
             iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
+            if(checkChange!= null){
+                checkChange.dispose();
+            }
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
             MediaHelper.play(MediaHelper.Text.second_opt);
             noface_openDoorUpData();
@@ -368,7 +414,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
                                     Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
-                                            .compose(CBSD_CommonActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
+                                            .compose(CBSD_SHGJActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                                             .observeOn(AndroidSchedulers.mainThread())
                                             .subscribe(new Observer<Long>() {
                                                 @Override
@@ -396,6 +442,9 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     captured1.setImageBitmap(null);
                                     EventBus.getDefault().post(new PassEvent());
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
+                                    if(checkChange!= null){
+                                        checkChange.dispose();
+                                    }
                                     tips.setText("仓管员" + cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
                                     MediaHelper.play(MediaHelper.Text.second_opt);
                                     face_openDoorUpData();
@@ -420,6 +469,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
             e.printStackTrace();
         }
     }
+
     void checkRecord(final int type) {
         SwitchPresenter.getInstance().OutD9(false);
         Intent checked = new Intent(this, TimeCheckReceiver.class);
@@ -483,6 +533,25 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                         }
                     });
 
+        }
+    }
+
+    VisitBasket visitBasket = new VisitBasket();
+    private void visit_operate(){
+        if(getState(TwoUnlockState.class)||getState(OneLockState.class)){
+            visitBasket.add(cardInfo.cardId(), new VisitBasket.Callback() {
+                @Override
+                public void dataUpload() {
+                    unknownPersonData();
+                }
+
+                @Override
+                public void TextBack() {
+                    ToastUtils.showLong("来访人员已离开");
+                }
+            });
+        }else {
+            unknownPersonData();
         }
     }
 

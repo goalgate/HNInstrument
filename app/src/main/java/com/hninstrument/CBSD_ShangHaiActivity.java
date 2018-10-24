@@ -9,12 +9,10 @@ import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
-import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
@@ -25,10 +23,9 @@ import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
-import com.hninstrument.State.OperationState.No_one_OperateState;
-import com.hninstrument.State.OperationState.One_man_OperateState;
-import com.hninstrument.State.OperationState.Two_man_OperateState;
-import com.hninstrument.Tools.DAInfo;
+import com.hninstrument.State.OperationState.LockingState;
+import com.hninstrument.State.OperationState.OneUnlockState;
+import com.hninstrument.State.OperationState.TwoUnlockState;
 import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
@@ -192,10 +189,10 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
             this.cardInfo = cardInfo;
             tips.setText(cardInfo.name() + "刷卡中，请稍后");
             if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
-                if (getState(No_one_OperateState.class)) {
+                if (getState(LockingState.class)) {
                     person1.setCardId(cardInfo.cardId());
                     person1.setName(cardInfo.name());
-                } else if (getState(One_man_OperateState.class)) {
+                } else if (getState(OneUnlockState.class)) {
                     person2.setCardId(cardInfo.cardId());
                     person2.setName(cardInfo.name());
                     if (person1.getCardId().equals(person2.getCardId())) {
@@ -204,7 +201,7 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
                         sp.redLight();
                         return;
                     }
-                } else if (getState(Two_man_OperateState.class)) {
+                } else if (getState(TwoUnlockState.class)) {
                     EventBus.getDefault().post(new CloseDoorEvent());
                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
                     tips.setText("已进入设防状态");
@@ -233,10 +230,10 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
                                     persontype = response.split("\\|")[1];
                                     SPUtils.getInstance("personData").put(cardInfo.cardId(), persontype);
                                     if (persontype.equals("1")) {
-                                        if (getState(No_one_OperateState.class)) {
+                                        if (getState(LockingState.class)) {
                                             person1.setCardId(cardInfo.cardId());
                                             person1.setName(cardInfo.name());
-                                        } else if (getState(One_man_OperateState.class)) {
+                                        } else if (getState(OneUnlockState.class)) {
                                             person2.setCardId(cardInfo.cardId());
                                             person2.setName(cardInfo.name());
                                         }
@@ -280,13 +277,13 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
         photo = compressImage(bmp);
         if (persontype.equals("1")) {
             // if (!persontype.equals("5")) {
-            if (getState(No_one_OperateState.class) || getState(One_man_OperateState.class)) {
+            if (getState(LockingState.class) || getState(OneUnlockState.class)) {
                 if (ins_type.isFace()) {
                     face_upData();
                 } else {
                     noface_upData();
                 }
-            } else if (getState(Two_man_OperateState.class)) {
+            } else if (getState(TwoUnlockState.class)) {
                 operation.doNext();
                 pp.setDisplay(surfaceView.getHolder());
                 idp.readCard();
@@ -308,7 +305,7 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
 
     void noface_upData() {
         operation.doNext();
-        if (getState(One_man_OperateState.class)) {
+        if (getState(OneUnlockState.class)) {
             person1.setPhoto(photo);
             captured1.setImageBitmap(photo);
             tips.setText("仓管员" + cardInfo.name() + "刷卡成功");
@@ -339,7 +336,7 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
 
                         }
                     });
-        } else if ((getState(Two_man_OperateState.class))) {
+        } else if ((getState(TwoUnlockState.class))) {
             person2.setPhoto(photo);
             captured1.setImageBitmap(null);
             EventBus.getDefault().post(new PassEvent());
@@ -365,7 +362,7 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
                         if (response != null) {
                             if (response.startsWith("true") && (int) Double.parseDouble(response.substring(5, response.length())) > 60) {
                                 operation.doNext();
-                                if (getState(One_man_OperateState.class)) {
+                                if (getState(OneUnlockState.class)) {
                                     person1.setPhoto(photo);
                                     person1.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
                                     captured1.setImageBitmap(photo);
@@ -398,7 +395,7 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
 
                                                 }
                                             });
-                                } else if ((getState(Two_man_OperateState.class))) {
+                                } else if ((getState(TwoUnlockState.class))) {
                                     person2.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
                                     captured1.setImageBitmap(null);
                                     EventBus.getDefault().post(new PassEvent());
@@ -447,8 +444,8 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
                     new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
-                            if (!getState(Two_man_OperateState.class)) {
-                                operation.setState(new No_one_OperateState());
+                            if (!getState(TwoUnlockState.class)) {
+                                operation.setState(new LockingState());
                             }
                             captured1.setImageBitmap(null);
                             pp.setDisplay(surfaceView.getHolder());
@@ -478,8 +475,8 @@ public class CBSD_ShangHaiActivity extends CBSD_FunctionActivity {
                     new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
-                            if (!getState(Two_man_OperateState.class)) {
-                                operation.setState(new No_one_OperateState());
+                            if (!getState(TwoUnlockState.class)) {
+                                operation.setState(new LockingState());
                             }
                             captured1.setImageBitmap(null);
                             pp.setDisplay(surfaceView.getHolder());

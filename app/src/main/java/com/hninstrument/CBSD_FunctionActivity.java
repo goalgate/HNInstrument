@@ -1,78 +1,49 @@
 package com.hninstrument;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bigkoo.alertview.AlertView;
-import com.bigkoo.alertview.OnItemClickListener;
-import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.BarUtils;
-import com.blankj.utilcode.util.NetworkUtils;
-import com.blankj.utilcode.util.RegexUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Alerts.Alert_IP;
 import com.hninstrument.Alerts.Alert_Message;
 import com.hninstrument.Alerts.Alert_Server;
 import com.hninstrument.Bean.DataFlow.PersonBean;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
-import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.NetworkEvent;
-import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
-import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
-import com.hninstrument.Receiver.TimeCheckReceiver;
-import com.hninstrument.State.LockState.Lock;
-import com.hninstrument.State.LockState.State_Lockup;
-import com.hninstrument.State.OperationState.No_one_OperateState;
-import com.hninstrument.State.OperationState.One_man_OperateState;
+import com.hninstrument.State.OperationState.LockingState;
 import com.hninstrument.State.OperationState.Operation;
-import com.hninstrument.State.OperationState.Two_man_OperateState;
 import com.hninstrument.Tools.MediaHelper;
-import com.hninstrument.Tools.NetInfo;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.hninstrument.greendao.DaoSession;
 import com.hninstrument.greendao.ReUploadBeanDao;
-import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.components.RxActivity;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cbdi.drv.card.ICardInfo;
 import io.reactivex.Observable;
@@ -80,6 +51,8 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 public abstract class CBSD_FunctionActivity extends RxActivity implements IPhotoView, IIDCardView, AddPersonWindow.OptionTypeListener {
     public IDCardPresenter idp = IDCardPresenter.getInstance();
@@ -117,6 +90,9 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     PersonBean person2 = new PersonBean();
 
     DaoSession mdaoSession = AppInit.getInstance().getDaoSession();
+    @BindView(R.id.countText)
+    TextView countText;
+
     @BindView(R.id.tv_time)
     TextView tv_time;
 
@@ -157,37 +133,11 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
     }
 
+
+    int count = 30;
     @OnClick(R.id.iv_lock)
     void showMessage() {
         alert_message.showMessage();
-//        msg_daid.setText("设备ID：" + config.getString("devid"));
-//        if (TextUtils.isEmpty(NetworkUtils.getIPAddress(true))) {
-//            msg_ip.setText("IP地址：无法获取IP地址");
-//        } else {
-//            msg_ip.setText("IP地址：" + NetworkUtils.getIPAddress(true));
-//        }
-//        msg_mac.setText("MAC地址：" + new NetInfo().getMac());
-//        msg_software.setText("软件版本号：" + AppUtils.getAppVersionName());
-//        if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
-//            msg_ipmode.setText("当前以太网为动态IP获取模式");
-//        } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
-//            msg_ipmode.setText("当前以太网为静态IP获取模式");
-//        } else {
-//            msg_ipmode.setText("当前固件版本过低，无法获取以太网设置模式");
-//        }
-//        if (NetworkUtils.isConnected()) {
-//            msg_network.setText("网口可正常通信");
-//        } else {
-//            msg_network.setText("连接网络失败，请检查网线连接状态");
-//        }
-//        msg_iccard.setText("请放置身份证进行判断");
-//
-//        if (Lock.getInstance().getLockState().getClass().getName().equals(State_Lockup.class.getName())) {
-//            msg_lockState.setText("仓库处于上锁状态");
-//        } else {
-//            msg_lockState.setText("仓库处于解锁状态");
-//        }
-//        messageAlert.show();
     }
 
 
@@ -207,7 +157,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
             }
         });
         AppInit.getMyManager().ethEnabled(true);
-        operation = new Operation(new No_one_OperateState());
+        operation = new Operation(new LockingState());
         if (ins_type.noise()) {
             MediaHelper.mediaOpen();
         }
@@ -235,9 +185,8 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         idp.readCard();
         pp.PhotoPresenterSetView(this);
         pp.setDisplay(surfaceView.getHolder());
-
         networkState = false;
-        operation.setState(new No_one_OperateState());
+        operation.setState(new LockingState());
     }
 
     @Override

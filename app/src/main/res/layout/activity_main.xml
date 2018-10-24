@@ -111,14 +111,33 @@
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <ImageView
-                android:id="@+id/img_captured1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginTop="10dp" />
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+
+                <ImageView
+                    android:id="@+id/img_captured1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="10dp" />
+                <TextView
+                    android:id="@+id/countText"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="180dp"
+                    android:textColor="@color/red"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    />
+
+            </FrameLayout>
+
+
         </LinearLayout>
 
         <LinearLayout

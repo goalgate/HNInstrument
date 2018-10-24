@@ -10,6 +10,7 @@ import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Config.XA_Config;
 import com.hninstrument.greendao.DaoMaster;
@@ -71,7 +72,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new SH_Config();
+        InstrumentConfig = new SHGJ_Config();
 
         manager = MyManager.getInstance(this);
 

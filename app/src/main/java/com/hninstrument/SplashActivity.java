@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.R;
 
@@ -38,7 +39,10 @@ public class SplashActivity extends Activity {
 
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SH_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
-            }else{
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHGJ_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_SHGJActivity");
+            }
+            else{
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
                 //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
             }

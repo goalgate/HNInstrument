@@ -23,10 +23,6 @@ public class Operation {
         this.state = state;
     }
 
-/*
-    public void setMessage(UnUploadPackageDao unUploadPackageDao, IRequestModule module, Boolean network_state){
-        state.setMessage(unUploadPackageDao,module, network_state);
-    }*/
 
 
     public void doNext(){
