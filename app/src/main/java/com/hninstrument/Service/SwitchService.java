@@ -20,6 +20,7 @@ import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
@@ -308,7 +309,8 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
         lock.doNext();
-        if(type.getClass().getName().equals(SH_Config.class.getName())){
+        if(type.getClass().getName().equals(SHGJ_Config.class.getName())
+                ||type.getClass().getName().equals(SHGJ_Config.class.getName())){
             sp.doorOpen();
         }
     }

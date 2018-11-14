@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
+import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiFB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;

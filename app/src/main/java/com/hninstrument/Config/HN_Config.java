@@ -16,19 +16,50 @@ public class HN_Config extends BaseConfig {
         return false;
     }
 
+//    @Override
+//    public String getPersonInfoPrefix() {
+//        return "da_gzmb_persionInfo?";
+//    }
+//
+//    @Override
+//    public String getServerId() {
+//        return "http://124.172.232.87:8802/";
+//    }
+//
+//    @Override
+//    public String getUpDataPrefix() {
+//        return "da_gzmb_updata?";
+//    }
+
+    //    @Override
+//    public String getPersonInfoPrefix() {
+//        return "da_gzmb_persionInfo?";
+//    }
+//
+//    @Override
+//    public String getServerId() {
+//        return "http://124.172.232.87:8802/";
+//    }
+//
+//    @Override
+//    public String getUpDataPrefix() {
+//        return "da_gzmb_updata?";
+//    }
+
+
     @Override
     public String getPersonInfoPrefix() {
-        return "da_gzmb_persionInfo?";
+        return "cjy_updata?";
     }
 
     @Override
     public String getServerId() {
-        return "http://124.172.232.87:8802/";
+        return "http://192.168.11.211:8888/cjy/s/";
     }
-
+    
     @Override
     public String getUpDataPrefix() {
-        return "da_gzmb_updata?";
+        return "cjy_updata?";
     }
 
     @Override
@@ -68,7 +99,7 @@ public class HN_Config extends BaseConfig {
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
     }
 
     @Override

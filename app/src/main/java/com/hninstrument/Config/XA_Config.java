@@ -30,10 +30,14 @@ public class XA_Config extends BaseConfig {
     public String getUpDataPrefix() {
         return "da_gzmb_updata?";
     }
-
+//
+//    @Override
+//    public String getDev_prefix() {
+//        return "800100";
+//    }
     @Override
     public String getDev_prefix() {
-        return "800100";
+        return "800200";
     }
 
     @Override
@@ -41,11 +45,15 @@ public class XA_Config extends BaseConfig {
         return 60;
     }
 
+//    @Override
+//    public String getModel() {
+//            return "CBDI-DA-01";
+//    }
+
     @Override
     public String getModel() {
-            return "CBDI-DA-01";
+        return "CBDI-ID";
     }
-
     @Override
     public String getName() {
         return "防爆采集器";

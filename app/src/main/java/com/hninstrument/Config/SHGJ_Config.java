@@ -3,7 +3,7 @@ package com.hninstrument.Config;
 public class SHGJ_Config extends BaseConfig{
     @Override
     public boolean isFace() {
-        return false;
+        return true;
     }
 
     @Override
@@ -18,7 +18,7 @@ public class SHGJ_Config extends BaseConfig{
 
     @Override
     public String getServerId() {
-        return "http://115.159.241.118:8009/";
+        return "http://shjd.snaq.cn:47002/";
     }
 
     @Override
@@ -68,7 +68,7 @@ public class SHGJ_Config extends BaseConfig{
 
     @Override
     public boolean disAlarm() {
-        return true;
+        return false;
     }
 
     @Override

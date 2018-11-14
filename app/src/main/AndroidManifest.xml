@@ -13,13 +13,13 @@
         <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.HOME" />
+                <!--<category android:name="android.intent.category.DEFAULT" />-->
+                <!--<category android:name="android.intent.category.HOME" />-->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".StartActivity"></activity>
-        <activity android:name=".MainActivity" android:launchMode="singleInstance"></activity>        <activity android:name=".cHuBeiWeiHuaActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".MainActivity" android:launchMode="singleInstance"></activity>
         <activity android:name=".CBSD_ShangHaiActivity" android:launchMode="singleInstance"></activity>
         <activity android:name=".CBSD_HuBeiWeiHuaActivity" android:launchMode="singleInstance"></activity>
         <activity android:name=".CBSD_SHGJActivity" android:launchMode="singleInstance"></activity>
@@ -28,11 +28,11 @@
         <receiver
             android:name=".Receiver.TimeCheckReceiver">
         </receiver>
-        <receiver android:name=".Receiver.BootBroadcastReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name=".Receiver.BootBroadcastReceiver">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.BOOT_COMPLETED"/>-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -56,9 +56,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- 开机启动 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
-
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />

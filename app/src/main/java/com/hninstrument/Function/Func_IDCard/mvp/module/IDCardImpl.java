@@ -44,7 +44,8 @@ public class IDCardImpl implements IIDCard {
                 e.printStackTrace();
             }
         }
-        else if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903) {
+        else if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903
+                &&Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) < 20180918) {
             try {
                 //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
                 cardInfo = new CardInfoRk123x("/dev/ttyS0", m_onCardState);

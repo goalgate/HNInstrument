@@ -25,7 +25,6 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         SPUtils SP_Config = SPUtils.getInstance(PREFS_NAME);
-
         if (SP_Config.getBoolean("firstStart", true)) {
             ActivityUtils.startActivity(getPackageName(),getPackageName()+".StartActivity");
             this.finish();

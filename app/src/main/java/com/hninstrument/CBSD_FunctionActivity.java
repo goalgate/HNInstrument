@@ -90,8 +90,6 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     PersonBean person2 = new PersonBean();
 
     DaoSession mdaoSession = AppInit.getInstance().getDaoSession();
-    @BindView(R.id.countText)
-    TextView countText;
 
     @BindView(R.id.tv_time)
     TextView tv_time;
