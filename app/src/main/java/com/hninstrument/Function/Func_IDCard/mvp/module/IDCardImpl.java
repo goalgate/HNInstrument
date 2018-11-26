@@ -1,16 +1,12 @@
 package com.hninstrument.Function.Func_IDCard.mvp.module;
-
 import android.graphics.Bitmap;
 import android.util.Log;
-
 import com.hninstrument.AppInit;
-
 import cbdi.drv.card.CardInfo;
 import cbdi.drv.card.CardInfoRk123x;
 import cbdi.drv.card.ICardInfo;
 import cbdi.drv.card.ICardState;
 import cbdi.log.Lg;
-
 
 /**
  * Created by zbsz on 2017/6/4.
@@ -19,11 +15,8 @@ import cbdi.log.Lg;
 public class IDCardImpl implements IIDCard {
     private static final String TAG = "信息提示";
     private int cdevfd = -1;
-    //private static CardInfoRk123x cardInfo = null;
     private static ICardInfo cardInfo = null;
     IIdCardListener mylistener;
-
-
     @Override
     public void onOpen(IIdCardListener listener) {
         mylistener = listener;
@@ -47,7 +40,6 @@ public class IDCardImpl implements IIDCard {
         else if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903
                 &&Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) < 20180918) {
             try {
-                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
                 cardInfo = new CardInfoRk123x("/dev/ttyS0", m_onCardState);
                 cardInfo.setDevType("rk3368");
                 cdevfd = cardInfo.open();
@@ -63,7 +55,6 @@ public class IDCardImpl implements IIDCard {
             }
         } else {
             try {
-                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
                 cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
                 cardInfo.setDevType("rk3368");
                 cdevfd = cardInfo.open();
@@ -78,8 +69,6 @@ public class IDCardImpl implements IIDCard {
                 e.printStackTrace();
             }
         }
-
-
     }
 
     @Override
@@ -91,7 +80,6 @@ public class IDCardImpl implements IIDCard {
     public void onStopReadCard() {
         cardInfo.stopReadCard();
     }
-
 
     private ICardState m_onCardState = new ICardState() {
         @Override

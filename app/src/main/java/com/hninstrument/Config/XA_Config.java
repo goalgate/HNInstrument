@@ -56,7 +56,7 @@ public class XA_Config extends BaseConfig {
     }
     @Override
     public String getName() {
-        return "防爆采集器";
+        return "库房采集器";
     }
 
     @Override

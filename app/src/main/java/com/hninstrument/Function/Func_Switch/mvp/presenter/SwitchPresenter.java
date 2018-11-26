@@ -1,6 +1,4 @@
 package com.hninstrument.Function.Func_Switch.mvp.presenter;
-
-
 import com.hninstrument.Function.Func_Switch.mvp.module.ISwitching;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;

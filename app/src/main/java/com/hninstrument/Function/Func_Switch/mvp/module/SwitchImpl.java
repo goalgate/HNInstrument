@@ -29,17 +29,11 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     private String testStr = "";
     private byte[] switchingValue = new byte[8]; //开关量状态
     private Calendar switchingTime = Calendar.getInstance(); //取开关时状态时间
-
     private Calendar temHumTime = Calendar.getInstance(); //取温湿度时间
     private int temperature = 0;  //温度
     private int humidity = 0;   //湿度
-
     ISwitchingListener listener;
-
-
     private byte[] dt_temHum_ = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0x96, 0x69, 0x55, 0x63, 0x7E, 0x6B};  //温湿度命令
-
-
     private byte[] dt_outD8off_ = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0x96, 0x69, 0x40, 0x30, 0x58, (byte) 0xDD};  //D9断电器关命令
     private byte[] dt_outD8on_ = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0x96, 0x69, 0x41, 0x31, 0x08, 0x1D};  //D9断电器开命令
     private byte[] dt_outD9off_ = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0x96, 0x69, 0x20, 0x10, (byte) 0x80, (byte) 0xF4};  //D9断电器关命令
@@ -47,16 +41,11 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
     private byte[] dt_buzz_ = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0x0B, 0x0B, 0x02, 0x33, (byte) 0x7B, 0x23};  //D9断电器开命令
     private byte[] dt_buzzOff = {0x02, 0x02, 0x07, 0x00, 0x10, 0x01, (byte) 0xFF, (byte) 0xFF, (byte) 0xC8, 0x00, 0x00, (byte) 0x99, (byte) 0x2E};  //D9断电器开命令
     private byte[] dt_doorOpen = {(byte) 0xAA, (byte) 0xAA, (byte) 0xAA, 0x04, 0x70, 0x03, 0x00, (byte) 0xC4, (byte) 0x3E};
-
     private byte[] dt_greenLightBlink = {0x02, 0x02, (byte) 0x0B, 0x00, (byte) 0xA2, 0x00, 0x02, 0x02, 0x03, 0x00, (byte) 0x0B, 0x01, 0x01, (byte) 0xD1, (byte) 0x92, (byte) 0x93, 0x63};
     private byte[] dt_redLightBlink = {0x02, 0x02, (byte) 0x0B, 0x00, (byte) 0xA2, 0x00, 0x02, 0x02, 0x03, 0x00, (byte) 0x0B, 0x02, 0x02, (byte) 0x91, (byte) 0x63, (byte) 0x93, 0x63};
-
-
     //接收数据最后时间
     private long lastRevTime_;
-
     private Timer terCheck = new Timer(); //检测是否读完
-
     SerialPortCom ttyS3 = new SerialPortCom() {
         @Override
         public void onRead(int fd, int len, byte[] buf) {
@@ -80,8 +69,6 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
             setDevName("/dev/ttyS0");
             open(115200);
         }
-
-
     }
 
     @Override
@@ -129,7 +116,6 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
 
     @Override
     public void onBuzz(Hex hex) {
-
         switch (hex) {
             case H1:
                 dt_buzz_[5] = 0x01;
@@ -176,13 +162,9 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
             case HF:
                 dt_buzz_[5] = 0x0F;
                 break;
-
-
             default:
                 break;
-
         }
-
         sendData(dt_buzz_);
     }
 
@@ -240,7 +222,6 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
         checkCount_ = 0;
     }
 
-
     private void sendData(byte[] bs) {
         try {
             write(bs);
@@ -249,7 +230,6 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
             Lg.e("M121_sendData", ex.toString());
         }
     }
-
 
     Handler mhandler = new Handler() {
         @Override
@@ -261,5 +241,4 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
             }
         }
     };
-
 }

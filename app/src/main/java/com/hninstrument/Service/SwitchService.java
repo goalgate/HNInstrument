@@ -4,24 +4,18 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.EncodeUtils;
-import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
-import com.blankj.utilcode.util.TimeUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
-import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SHGJ_Config;
-import com.hninstrument.Config.SH_Config;
 import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.CloseDoorEvent;
@@ -32,7 +26,6 @@ import com.hninstrument.EventBus.TemHumEvent;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
-import com.hninstrument.MainActivity;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
@@ -40,13 +33,9 @@ import com.hninstrument.State.LockState.State_Unlock;
 import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.hninstrument.greendao.DaoSession;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -56,7 +45,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import cbdi.drv.netDa.INetDaSocketEvent;
 import cbdi.drv.netDa.NetDAM0888Data;
 import cbdi.drv.netDa.NetDAM0888Socket;
@@ -210,20 +198,15 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                     .setBuilderEvent(this)
                     .setBuilderDATime(1000)
                     .builder_open("192.168.12.232", 10000);
-
             connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=queryTdhInfo"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/,
                     config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                         @Override
                         public void onResponse(String response) {
-
                             if (response != null && !response.equals("false")) {
                                 String[] str_array = response.split("\\|\\|");
-
                                 ADNum = str_array.length;
-
                                 for (String s : str_array) {
                                     String[] new_s = s.split("\\,");
-
                                     daData.getAI(Integer.parseInt(new_s[0]))
                                             .setBuilderEnable(true)
                                             .setBuilderName((new_s[1]))
@@ -239,14 +222,11 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 //                    0,液位:,米,4,20,0,5,2,-1,-1,-1||1,气体浓度:,%,4,20,0,100,1,-1,20,-1
                                 }
                             }
-
                         }
-
                     });
         }
         reboot();
     }
-
 
     private void autoUpdate() {
         connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
@@ -300,7 +280,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                         } else {
                             ToastUtils.showLong("连接服务器错误");
                         }
-
                     }
                 });
     }
@@ -332,7 +311,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     public void onDestroy() {
         super.onDestroy();
         sp.SwitchPresenterSetView(null);
-
         if (dis_testNet != null) {
             dis_testNet.dispose();
         }
@@ -346,9 +324,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
             dis_TemHum.dispose();
         }
         EventBus.getDefault().unregister(this);
-   /*     Intent localIntent = new Intent();
-        localIntent.setClass(this, SwitchService.class); //销毁时重新启动Service
-        this.startService(localIntent);*/
     }
 
     @Override
@@ -359,7 +334,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
         }
         last_mTemperature = temperature;
         last_mHumidity = humidity;
-
     }
 
     @Override
@@ -381,9 +355,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     }
 
-
     boolean socket_connect = false;
-
     private void StateRecord() {
         if (type.collectBox()) {
             String extra = "";
@@ -418,9 +390,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                         });
             }
         }
-
     }
-
 
     private void alarmRecord() {
         EventBus.getDefault().post(new AlarmEvent());
@@ -434,8 +404,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                         }
                     }
                 });
-
-
     }
 
     private void CloseDoorRecord() {
@@ -463,7 +431,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     Calendar c = Calendar.getInstance();
     PendingIntent checkTime_pi;
-
     private void checkTime(final boolean add) {
         Lg.e("提示", "获取时间开始");
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkTime" + "&daid=" + config.getString("devid"),

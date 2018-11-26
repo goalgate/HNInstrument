@@ -16,51 +16,24 @@ public class HN_Config extends BaseConfig {
         return false;
     }
 
-//    @Override
-//    public String getPersonInfoPrefix() {
-//        return "da_gzmb_persionInfo?";
-//    }
-//
-//    @Override
-//    public String getServerId() {
-//        return "http://124.172.232.87:8802/";
-//    }
-//
-//    @Override
-//    public String getUpDataPrefix() {
-//        return "da_gzmb_updata?";
-//    }
-
-    //    @Override
-//    public String getPersonInfoPrefix() {
-//        return "da_gzmb_persionInfo?";
-//    }
-//
-//    @Override
-//    public String getServerId() {
-//        return "http://124.172.232.87:8802/";
-//    }
-//
-//    @Override
-//    public String getUpDataPrefix() {
-//        return "da_gzmb_updata?";
-//    }
-
 
     @Override
     public String getPersonInfoPrefix() {
-        return "cjy_updata?";
+        return "da_gzmb_persionInfo?";
     }
 
     @Override
     public String getServerId() {
-        return "http://192.168.11.211:8888/cjy/s/";
+        return "http://124.172.232.87:8802/";
     }
-    
+
     @Override
     public String getUpDataPrefix() {
-        return "cjy_updata?";
+        return "da_gzmb_updata?";
     }
+
+
+
 
     @Override
     public String getDev_prefix() {

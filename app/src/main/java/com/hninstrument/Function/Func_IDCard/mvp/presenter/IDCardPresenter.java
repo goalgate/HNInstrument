@@ -1,14 +1,10 @@
 package com.hninstrument.Function.Func_IDCard.mvp.presenter;
 
 import android.graphics.Bitmap;
-
 import com.hninstrument.Function.Func_IDCard.mvp.module.IDCardImpl;
 import com.hninstrument.Function.Func_IDCard.mvp.module.IIDCard;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
-
-import cbdi.drv.card.CardInfoRk123x;
 import cbdi.drv.card.ICardInfo;
-
 
 /**
  * Created by zbsz on 2017/6/9.
@@ -40,12 +36,6 @@ public class IDCardPresenter {
             public void onSetImg(Bitmap bmp) {
                 view.onsetCardImg(bmp);
             }
-
-//            @Override
-//            public void onSetInfo(CardInfoRk123x cardInfo) {
-//                view.onsetCardInfo(cardInfo);
-//            }
-
 
             @Override
             public void onSetInfo(ICardInfo cardInfo) {
