@@ -177,7 +177,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                 });
 
         disposableTips = RxTextView.textChanges(tips)
-                .debounce(60, TimeUnit.SECONDS)
+                .debounce(20, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws
@@ -253,7 +253,6 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
     @Override
     public void onResume() {
         super.onResume();
-        networkState = false;
         operation.setState(new LockingState());
         tips.setText(config.getString("devid") + "号机器等待用户操作");
     }
@@ -340,72 +339,13 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
         }
     }
 
-    boolean networkState;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetNetworkEvent(NetworkEvent event) {
         if (event.getNetwork_state()) {
-
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-            if (!networkState) {
-                Log.e("信息提示", "重新联网了");
-                networkState = true;
-                final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
-                List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
-//                if (list.size() > 20) {
-//                    idp.stopReadCard();
-//                    MediaHelper.play(MediaHelper.Text.wait_reupload);
-//                }
-                for (final ReUploadBean bean : list) {
-                    if (bean.getContent() != null) {
-                        if (bean.getType_patrol() != 0) {
-                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid") + "&checkType=" + bean.getType_patrol(),
-                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            if (response != null) {
-                                                if (response.startsWith("true")) {
-                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                    reUploadBeanDao.delete(bean);
-                                                }
-                                            }
-                                        }
-                                    });
-                        } else {
-                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
-                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            if (response != null) {
-                                                if (response.startsWith("true")) {
-                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                    reUploadBeanDao.delete(bean);
-                                                }
-                                            }
-                                        }
-                                    });
-                        }
-                    } else {
-                        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
-                                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        if (response != null) {
-                                            if (response.startsWith("true")) {
-                                                Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                reUploadBeanDao.delete(bean);
-                                            }
-                                        }
-                                    }
-                                });
-                    }
-
-                }
-//                idp.readCard();
-                MediaHelper.play(MediaHelper.Text.waiting);
-            }
         } else {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.non_wifi));
-            networkState = false;
         }
     }
 
@@ -821,7 +761,7 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                         if (response != null) {
                             tips.setText("开门记录已上传到服务器");
                         } else {
-                            tips.setText("开门记录服务器上传失败");
+                            tips.setText("开门记录上传失败，已保存到本地");
                             MediaHelper.play(MediaHelper.Text.second_err);
                             mdaoSession.insert(new ReUploadBean(null, "dataType=openDoor", new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), person2.getPhoto()).toByteArray(), 0));
                         }

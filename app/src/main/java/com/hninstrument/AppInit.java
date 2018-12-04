@@ -3,11 +3,13 @@ package com.hninstrument;
 import android.app.Application;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HNTest_Config;
+import com.hninstrument.Config.SHDMJ_config;
+import com.hninstrument.Config.SH_Config;
+import com.hninstrument.Config.WZ_Config;
 import com.hninstrument.greendao.DaoMaster;
 import com.hninstrument.greendao.DaoSession;
 import com.squareup.leakcanary.LeakCanary;
@@ -65,7 +67,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HNTest_Config();
+        InstrumentConfig = new GDMB_Config();
 
         manager = MyManager.getInstance(this);
 

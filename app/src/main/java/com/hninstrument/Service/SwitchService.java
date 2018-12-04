@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.EncodeUtils;
 import com.blankj.utilcode.util.SPUtils;
@@ -15,6 +16,7 @@ import com.hninstrument.AppInit;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.EventBus.ADEvent;
 import com.hninstrument.EventBus.AlarmEvent;
@@ -33,18 +35,23 @@ import com.hninstrument.State.LockState.State_Unlock;
 import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.hninstrument.greendao.DaoSession;
+import com.hninstrument.greendao.ReUploadBeanDao;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import cbdi.drv.netDa.INetDaSocketEvent;
 import cbdi.drv.netDa.NetDAM0888Data;
 import cbdi.drv.netDa.NetDAM0888Socket;
@@ -226,7 +233,58 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                     });
         }
         reboot();
+        reUpload();
     }
+
+    public void reUpload() {
+        final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
+        List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
+        for (final ReUploadBean bean : list) {
+            if (bean.getContent() != null) {
+                if (bean.getType_patrol() != 0) {
+                    connectionUtil.post_SingleThread(config.getString("ServerId") + type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid") + "&checkType=" + bean.getType_patrol(),
+                            config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if (response != null) {
+                                        if (response.startsWith("true")) {
+                                            Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                            reUploadBeanDao.delete(bean);
+                                        }
+                                    }
+                                }
+                            });
+                } else {
+                    connectionUtil.post_SingleThread(config.getString("ServerId") + type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
+                            config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
+                                @Override
+                                public void onResponse(String response) {
+                                    if (response != null) {
+                                        if (response.startsWith("true")) {
+                                            Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                            reUploadBeanDao.delete(bean);
+                                        }
+                                    }
+                                }
+                            });
+                }
+            } else {
+                connectionUtil.post_SingleThread(config.getString("ServerId") + type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
+                        config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                            @Override
+                            public void onResponse(String response) {
+                                if (response != null) {
+                                    if (response.startsWith("true")) {
+                                        Log.e("程序执行记录", "已执行删除" + bean.getMethod());
+                                        reUploadBeanDao.delete(bean);
+                                    }
+                                }
+                            }
+                        });
+            }
+        }
+    }
+
 
     private void autoUpdate() {
         connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
@@ -288,8 +346,8 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     public void onGetPassEvent(PassEvent event) {
         lock.setLockState(new State_Unlock(sp));
         lock.doNext();
-        if(type.getClass().getName().equals(SHGJ_Config.class.getName())
-                ||type.getClass().getName().equals(SHGJ_Config.class.getName())){
+        if (type.getClass().getName().equals(SHGJ_Config.class.getName())
+                || type.getClass().getName().equals(SHDMJ_config.class.getName())) {
             sp.doorOpen();
         }
     }
@@ -356,6 +414,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     }
 
     boolean socket_connect = false;
+
     private void StateRecord() {
         if (type.collectBox()) {
             String extra = "";
@@ -379,7 +438,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
                         }
                     });
-        }else{
+        } else {
             if (network_State) {
                 connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=temHum&tem=" + last_mTemperature + "&hum=" + last_mHumidity + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
                         config.getString("ServerId"), new ServerConnectionUtil.Callback() {
@@ -411,10 +470,10 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                     @Override
                     public void onResponse(String response) {
-                        if(response == null){
-                            mdaoSession.insert(new ReUploadBean(null,"dataType=closeDoor" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),null,0));
+                        if (response == null) {
+                            mdaoSession.insert(new ReUploadBean(null, "dataType=closeDoor" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
                             MediaHelper.play(MediaHelper.Text.err_connect_relock);
-                        }else{
+                        } else {
                             MediaHelper.play(MediaHelper.Text.relock_opt);
                         }
                     }
@@ -431,6 +490,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     Calendar c = Calendar.getInstance();
     PendingIntent checkTime_pi;
+
     private void checkTime(final boolean add) {
         Lg.e("提示", "获取时间开始");
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "dataType=checkTime" + "&daid=" + config.getString("devid"),
@@ -490,22 +550,26 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     private void reboot() {
         long daySpan = 24 * 60 * 60 * 1000 * 1;
         // 规定的每天时间，某时刻运行
-        int randomTime = new Random().nextInt(50)+10;
-        String pattern = "yyyy-MM-dd '03:"+randomTime+":00'";
+        int randomTime = new Random().nextInt(50) + 10;
+        String pattern = "yyyy-MM-dd '03:" + randomTime + ":00'";
         final SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-        Log.e("rebootTime",pattern);
+        Log.e("rebootTime", pattern);
         // 首次运行时间
         try {
             Date startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sdf.format(new Date()));
-            if (System.currentTimeMillis() > startTime.getTime())
+            if (System.currentTimeMillis() > startTime.getTime()) {
                 startTime = new Date(startTime.getTime() + daySpan);
+            } else if (startTime.getHours() == new Date().getHours()) {
+                startTime = new Date(startTime.getTime() + daySpan);
+            }
+            Log.e("startTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTime));
             Timer t = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     // 要执行的代码
                     AppInit.getMyManager().reboot();
-                    Log.e("信息提示","关机了");
+                    Log.e("信息提示", "关机了");
                 }
             };
             t.scheduleAtFixedRate(task, startTime, daySpan);

@@ -19,6 +19,7 @@ import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.NetworkEvent;
 import com.hninstrument.EventBus.TemHumEvent;
@@ -26,6 +27,9 @@ import com.hninstrument.Function.Func_Camera.mvp.presenter.PhotoPresenter;
 import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
+import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.hninstrument.State.LockState.Lock;
+import com.hninstrument.State.LockState.State_Unlock;
 import com.hninstrument.State.OperationState.LockingState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.Tools.MediaHelper;
@@ -33,26 +37,16 @@ import com.hninstrument.Tools.ServerConnectionUtil;
 import com.hninstrument.greendao.DaoSession;
 import com.hninstrument.greendao.ReUploadBeanDao;
 import com.trello.rxlifecycle2.components.RxActivity;
-
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import butterknife.BindView;
 import butterknife.OnClick;
 import cbdi.drv.card.ICardInfo;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 public abstract class CBSD_FunctionActivity extends RxActivity implements IPhotoView, IIDCardView, AddPersonWindow.OptionTypeListener {
     public IDCardPresenter idp = IDCardPresenter.getInstance();
@@ -64,8 +58,6 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     UpPersonRecordData upPersonRecordData = new UpPersonRecordData();
 
     Operation operation;
-
-    boolean networkState;
 
     Bitmap headphoto;
 
@@ -131,14 +123,15 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         personWindow.showAtLocation(getWindow().getDecorView().findViewById(android.R.id.content), Gravity.CENTER, 0, 0);
     }
 
-
-    int count = 30;
     @OnClick(R.id.iv_lock)
-    void showMessage() {
-        alert_message.showMessage();
+    public void showMessage() {
+        if(AppInit.getInstrumentConfig().getClass().getName().equals(SHDMJ_config.class.getName())
+                &&Lock.getInstance().getLockState().getClass().getName().equals(State_Unlock.class.getName())){
+            SwitchPresenter.getInstance().doorOpen();
+        }else{
+            alert_message.showMessage();
+        }
     }
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -183,7 +176,6 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         idp.readCard();
         pp.PhotoPresenterSetView(this);
         pp.setDisplay(surfaceView.getHolder());
-        networkState = false;
         operation.setState(new LockingState());
     }
 
@@ -260,7 +252,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                         if (response != null) {
                             tips.setText("开门记录已上传到服务器");
                         } else {
-                            tips.setText("开门记录服务器上传失败");
+                            tips.setText("开门记录上传失败，已保存到本地");
                             MediaHelper.play(MediaHelper.Text.second_err);
                             mdaoSession.insert(new ReUploadBean(null, "dataType=openDoor", new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), person2.getPhoto()).toByteArray(), 0));
                         }
@@ -298,66 +290,8 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     public void onGetNetworkEvent(NetworkEvent event) {
         if (event.getNetwork_state()) {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
-            if (!networkState) {
-                Log.e("信息提示", "重新联网了");
-                networkState = true;
-                final ReUploadBeanDao reUploadBeanDao = mdaoSession.getReUploadBeanDao();
-                List<ReUploadBean> list = reUploadBeanDao.queryBuilder().list();
-//                if (list.size() > 20) {
-//                    idp.stopReadCard();
-//                    MediaHelper.play(MediaHelper.Text.wait_reupload);
-//                }
-                for (final ReUploadBean bean : list) {
-                    if (bean.getContent() != null) {
-                        if (bean.getType_patrol() != 0) {
-                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid") + "&checkType=" + bean.getType_patrol(),
-                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            if (response != null) {
-                                                if (response.startsWith("true")) {
-                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                    reUploadBeanDao.delete(bean);
-                                                }
-                                            }
-                                        }
-                                    });
-                        } else {
-                            connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
-                                    config.getString("ServerId"), bean.getContent(), new ServerConnectionUtil.Callback() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            if (response != null) {
-                                                if (response.startsWith("true")) {
-                                                    Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                    reUploadBeanDao.delete(bean);
-                                                }
-                                            }
-                                        }
-                                    });
-                        }
-                    } else {
-                        connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + bean.getMethod() + "&daid=" + config.getString("devid"),
-                                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        if (response != null) {
-                                            if (response.startsWith("true")) {
-                                                Log.e("程序执行记录", "已执行删除" + bean.getMethod());
-                                                reUploadBeanDao.delete(bean);
-                                            }
-                                        }
-                                    }
-                                });
-                    }
-
-                }
-//                idp.readCard();
-                MediaHelper.play(MediaHelper.Text.waiting);
-            }
         } else {
             iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.non_wifi));
-            networkState = false;
         }
     }
 

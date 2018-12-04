@@ -44,8 +44,8 @@ public class SplashActivity extends Activity {
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHGJ_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_SHGJActivity");
             }else{
-                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
-                //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
+                //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
             }
 
             this.finish();

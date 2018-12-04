@@ -93,7 +93,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                 });
 
         disposableTips = RxTextView.textChanges(tips)
-                .debounce(60, TimeUnit.SECONDS)
+                .debounce(20, TimeUnit.SECONDS)
                 .switchMap(new Function<CharSequence, ObservableSource<String>>() {
                     @Override
                     public ObservableSource<String> apply(@NonNull CharSequence charSequence) throws

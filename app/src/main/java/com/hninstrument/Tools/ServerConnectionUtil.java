@@ -2,9 +2,7 @@ package com.hninstrument.Tools;
 
 import android.os.Environment;
 import android.os.Handler;
-
 import com.blankj.utilcode.util.SPUtils;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -16,8 +14,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import io.reactivex.Observable;
 
 /**
  * Created by zbsz on 2017/12/2.
@@ -218,6 +217,39 @@ public class ServerConnectionUtil {
 
     public interface Callback {
         void onResponse(String response);
+    }
+
+
+    private ExecutorService es = Executors.newSingleThreadExecutor();
+    public void post_SingleThread(final String baseUrl, final String server, final Callback callback) {
+        es.submit(new Runnable() {
+            @Override
+            public void run() {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                final String response = sendPost(baseUrl, server);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onResponse(response);
+                    }
+                });
+            }
+        });
+    }
+    public void post_SingleThread(final String baseUrl, final String server, final byte[] bs, final Callback callback) {
+        es.submit(new Runnable() {
+            @Override
+            public void run() {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                final String response = sendPost(baseUrl, server, bs);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onResponse(response);
+                    }
+                });
+            }
+        });
     }
 
 
