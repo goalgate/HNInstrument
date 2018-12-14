@@ -23,7 +23,7 @@ public class GDMB_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://115.159.241.118:8009/";
+        return "https://gdmb.wxhxp.cn:8009/";
     }
 
     @Override

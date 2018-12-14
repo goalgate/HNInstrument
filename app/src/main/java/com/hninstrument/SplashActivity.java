@@ -34,9 +34,11 @@ public class SplashActivity extends Activity {
                 SP_Config.put("devid",SP_Config.getString("devid").substring(0,6)+"3"+SP_Config.getString("devid").substring(7,10));
                 ToastUtils.showLong("设备号已成功转换");
             }
+            if("http://115.159.241.118:8009/".equals(SP_Config.getString("ServerId"))){
+                SP_Config.put("ServerId","https://gdmb.wxhxp.cn:8009/");
+            }
             if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");
-
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SH_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHDMJ_config.class.getName())){
@@ -47,7 +49,6 @@ public class SplashActivity extends Activity {
                 //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
             }
-
             this.finish();
         }
     }
