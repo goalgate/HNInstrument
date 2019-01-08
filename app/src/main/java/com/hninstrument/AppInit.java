@@ -7,6 +7,7 @@ import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HNTest_Config;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SH_Config;

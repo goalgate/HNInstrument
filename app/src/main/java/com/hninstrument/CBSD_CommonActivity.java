@@ -17,6 +17,7 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
+import com.hninstrument.Config.HN_Config;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.PassEvent;
@@ -68,7 +69,10 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_byhubei);
+        setContentView(R.layout.activity_main);
+//        if(config.getString("ServerId").equals(new HN_Config().getServerId())){
+//            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+//        }
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
 

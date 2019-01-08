@@ -183,7 +183,7 @@ public abstract class SerialPortCom {
                 Lg.v("SerialPortCom_open","open rk3368 SerialPort ok");
         		devfd=1;
         	}else
-        	{	
+        	{
                devfd = HardwareControler.openSerialPort(devName_, speed_, dataBits_, stopBits_);
                 if (devfd >= 0) {
                     Lg.v("SerialPortCom_open","open ys SerialPort ok");
@@ -194,6 +194,7 @@ public abstract class SerialPortCom {
         	}
 
         }catch(Exception e){
+            e.printStackTrace();
             Lg.e("SerialPortCom_open",e.toString());
             return -1;
         }
