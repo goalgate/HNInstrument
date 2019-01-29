@@ -73,6 +73,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
 //        if(config.getString("ServerId").equals(new HN_Config().getServerId())){
 //            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
 //        }
+       // config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
 
@@ -405,9 +406,15 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     face_openDoorUpData();
                                 }
                             } else {
-                                tips.setText("仓管员数据：人脸比对失败，请重试");
-                                pp.setDisplay(surfaceView.getHolder());
-                                idp.readCard();
+                                try{
+                                    tips.setText("人脸比对失败，分数为"+String.valueOf(Double.parseDouble(response.substring(5, response.length()))));
+                                    pp.setDisplay(surfaceView.getHolder());
+                                    idp.readCard();
+                                }catch (Exception e){
+                                    tips.setText("人脸比对失败");
+
+                                }
+
                             }
                         } else {
                             tips.setText("仓管员数据：无法连接服务器");

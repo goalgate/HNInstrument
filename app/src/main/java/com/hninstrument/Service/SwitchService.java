@@ -29,6 +29,7 @@ import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
 import com.hninstrument.Receiver.TimeCheckReceiver;
+import com.hninstrument.SplashActivity;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.LockState.State_Unlock;
@@ -363,6 +364,9 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
     public void onGetExitEvent(ExitEvent event) {
         lock.setLockState(new State_Lockup(sp));
         sp.buzz(SwitchImpl.Hex.HA);
+//        Intent dialogIntent = new Intent(getBaseContext(), SplashActivity.class);
+//        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        getApplication().startActivity(dialogIntent);
     }
 
 

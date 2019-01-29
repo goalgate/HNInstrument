@@ -4,7 +4,7 @@ public class WZ_Config extends BaseConfig {
 
     @Override
     public boolean isFace() {
-        return false;
+        return true;
     }
 
     @Override

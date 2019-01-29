@@ -9,6 +9,10 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.SHDMJ_config;
+import com.hninstrument.Config.SHGJ_Config;
+import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Tools.AssetsUtils;
 
 import java.io.File;
@@ -48,7 +52,19 @@ public class StartActivity extends Activity {
             config.put("firstStart", false);
             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
             config.put("devid", AppInit.getInstrumentConfig().getDev_prefix() + dev_suffix.getText().toString());
-            ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
+            //ActivityUtils.startActivity(getPackageName(),getPackageName()+".MainActivity");
+            if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SH_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHDMJ_config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHGJ_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_SHGJActivity");
+            }else{
+                //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
+            }
             StartActivity.this.finish();
             ToastUtils.showLong("设备ID设置成功");
             //copyFilesToSdCard();

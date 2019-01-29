@@ -70,7 +70,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new GDMB_Config();
+        InstrumentConfig = new WZ_Config();
 
         manager = MyManager.getInstance(this);
 
