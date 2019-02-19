@@ -41,6 +41,11 @@ public class IDCardPresenter {
             public void onSetInfo(ICardInfo cardInfo) {
                 view.onsetCardInfo(cardInfo);
             }
+
+            @Override
+            public void onSetText(String Msg) {
+                view.onSetText(Msg);
+            }
         });
     }
 
@@ -54,5 +59,9 @@ public class IDCardPresenter {
 
     public void idCardClose(){
         idCardModule.onClose();
+    }
+
+    public void readSam(){
+        idCardModule.onReadSAM();
     }
 }

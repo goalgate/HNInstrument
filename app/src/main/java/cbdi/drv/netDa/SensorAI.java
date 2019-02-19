@@ -69,6 +69,9 @@ public class SensorAI {
 
     private String name="液位";  //传感器名称
     private String english_name = "Liquidlevel";
+
+
+
     private String unit="米";  //值单位
     private int precision=2;  //精度
     private float collectionVal=0; //采集值
@@ -130,16 +133,17 @@ public class SensorAI {
         return name;
     }
 
-    public String getEnglish_name() {
-        return english_name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setEnglish_name(String english_name) {
         this.english_name = english_name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getEnglish_name() {
+
+        return english_name;
     }
 
     public String getUnit() {
@@ -165,7 +169,7 @@ public class SensorAI {
     //设备是否有故障，true有故障
     public boolean isAIError()
     {
-        Calendar cd= Calendar.getInstance();
+        Calendar cd = Calendar.getInstance();
         if(time==null){return true;}
         if((cd.getTimeInMillis()-time.getTimeInMillis())>collectionCycle*2000)
         {
@@ -189,7 +193,7 @@ public class SensorAI {
         if(enable)
         {
             try {
-                time= Calendar.getInstance();
+                time=Calendar.getInstance();
                 if(collectionVal<minVal*(scaleVal-scaleVal*0.05))
                 {
                     val=0;

@@ -70,7 +70,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new WZ_Config();
+        InstrumentConfig = new HeBeiDanNing_Config();
 
         manager = MyManager.getInstance(this);
 

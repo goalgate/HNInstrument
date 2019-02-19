@@ -11,6 +11,7 @@ import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
 
 import cbdi.drv.card.CardInfo;
+import cbdi.drv.card.CardInfo1;
 import cbdi.drv.card.CardInfoRk123x;
 import cbdi.drv.card.ICardInfo;
 import cbdi.drv.card.ICardState;
@@ -39,7 +40,7 @@ public class IDCardImpl implements IIDCard {
                 //ToastUtils.showLong("rk123,ttyS0");
             } else {
                 if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())){
-                    cardInfo = new CardInfo("/dev/ttyS1", m_onCardState);
+                    cardInfo = new CardInfo1("/dev/ttyS1", m_onCardState);
                     //ToastUtils.showLong("rk,ttyS1");
                 }else{
                     cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
@@ -70,6 +71,11 @@ public class IDCardImpl implements IIDCard {
         cardInfo.stopReadCard();
     }
 
+    @Override
+    public void onReadSAM() {
+        cardInfo.readSam();
+    }
+
     private ICardState m_onCardState = new ICardState() {
         @Override
         public void onCardState(int itype, int value) {
@@ -82,6 +88,8 @@ public class IDCardImpl implements IIDCard {
                     Lg.e("信息提示", "没有照片");
                 }
                 cardInfo.clearIsReadOk();
+            }else if(itype == 20){
+                mylistener.onSetText("SAM:"+cardInfo.getSam());
             }
 
         }

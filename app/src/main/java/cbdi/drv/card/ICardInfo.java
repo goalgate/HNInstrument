@@ -10,7 +10,8 @@ public interface ICardInfo {
     void stopReadCard();
     void setDevType(String sType);
     int open();
-
+    void readSam();
+    String getSam();
     String cardId();
     String name();
 }

@@ -18,12 +18,14 @@ import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Config.HN_Config;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.PassEvent;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
+import com.hninstrument.Service.SwitchServiceByDN;
 import com.hninstrument.State.OperationState.LockingState;
 import com.hninstrument.State.OperationState.OneUnlockState;
 import com.hninstrument.State.OperationState.TwoUnlockState;
@@ -73,7 +75,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
 //        if(config.getString("ServerId").equals(new HN_Config().getServerId())){
 //            config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
 //        }
-       // config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
+        // config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
 
@@ -118,7 +120,6 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
     }
 
 
-
     private void setGesture() {
         gestures.setGestureStrokeType(GestureOverlayView.GESTURE_STROKE_TYPE_MULTIPLE);
         gestures.setGestureVisible(false);
@@ -155,7 +156,11 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
     }
 
     void openService() {
-        intent = new Intent(this, SwitchService.class);
+        if (AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
+            intent = new Intent(this, SwitchServiceByDN.class);
+        } else {
+            intent = new Intent(this, SwitchService.class);
+        }
         startService(intent);
     }
 
@@ -406,12 +411,14 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     face_openDoorUpData();
                                 }
                             } else {
-                                try{
-                                    tips.setText("人脸比对失败，分数为"+String.valueOf(Double.parseDouble(response.substring(5, response.length()))));
+                                try {
+                                    tips.setText("人脸比对失败，分数为" + String.valueOf(Double.parseDouble(response.substring(5, response.length()))));
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
-                                }catch (Exception e){
+                                } catch (Exception e) {
                                     tips.setText("人脸比对失败");
+                                    pp.setDisplay(surfaceView.getHolder());
+                                    idp.readCard();
 
                                 }
 
@@ -431,6 +438,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
             e.printStackTrace();
         }
     }
+
     void checkRecord(final int type) {
         SwitchPresenter.getInstance().OutD9(false);
         Intent checked = new Intent(this, TimeCheckReceiver.class);

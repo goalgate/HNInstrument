@@ -18,7 +18,7 @@ import cbdi.log.Lg;
 
 // android:sharedUserId="android.uid.system"
 //身份证读取类
-public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
+public class CardInfoRk123x extends SerialPortCom implements ICardInfo {
     private final int t_name = 1;
     private final int t_sex = 2;
     private final int t_nation = 3;
@@ -32,6 +32,14 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
     private final int info_false = 0;
     private final int info_true = 1;
     private final int info_no = 2;
+    private String ver="1.1";
+
+    public String getVer() {
+        return ver;
+    }
+
+    private String  sam_="";
+
 
     //姓名
     private String name_ = "";
@@ -55,6 +63,8 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
     //接收数据最后时间
     private long lastRevTime_;
 
+    private String uid_="";
+
     //读取成功后的数据
     private boolean isReadOk_=false;
 
@@ -63,19 +73,12 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
 
     private int readType_=0;  //读卡类型
     private int readState_=0;  //返回状态
-    private String devType="rk3668";  //rk312x
+    private String devType="rk312x";  //rk312x
+
+    private boolean isIC=false;  //是否打开IC卡
 
 
-    String faceRecognition;
 
-    public void setFaceRecognition(String faceRecognition) {
-        this.faceRecognition = faceRecognition;
-    }
-
-    public String getFaceRecognition() {
-
-        return faceRecognition;
-    }
 
 
     //检测是否有设备
@@ -86,6 +89,9 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
 
     private byte[] dt_check =new byte[]{ 0x02,0x02,0x11,0x00,0x05,0x03,0x02, 0x00, 0x11, 0x03,(byte)0xAA, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, (byte)0xB9, 0x03,(byte)0x7F,0x77,0x55 };
     private byte[] dt_check_ =new byte[]{0x02, 0x02, 0x01, 0x00,(byte)0x91,(byte)0xE1,(byte)0xAC};
+
+    //读取SAM编号
+    private byte[] dt_sam={0x02,0x02,0x0c,0x00,0x05,0x03,(byte)0xAA,(byte)0xAA,(byte)0xAA,(byte)0x96,0x69,0x00,0x03,0x12,(byte)0xFF,(byte)0xEE,0x10,(byte)0x8A,0x55};
 
 
 
@@ -106,18 +112,30 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
     private byte[] dt_readCer_no ={ (byte)0xAA, (byte)0xAA, (byte)0xAA, (byte)0x96, 0x69, 0x00, 0x04, 0x00, 0x00, 0x41, 0x45 }; //11
     private byte[] dt_readCer_yes ={ (byte)0xAA, (byte)0xAA, (byte)0xAA, (byte)0x96, 0x69, 0x05, 0x08, 0x00, 0x00, (byte)0x90 }; //10
 
+
+    //IC卡 type A卡
+    private byte[] dt_ica_open=new byte[]{0x02,0x02,0x03,0x00,0x0c,0x01,0x01,0x60,0x53,0x55};
+    private byte[] dt_ica_close=new byte[]{0x02,0x02,0x03,0x00,0x0c,0x01,0x00,(byte)0xa1,(byte)0x93,0x55};
+    private byte[] dt_ica_read=new byte[]{0x02,0x02,0x03,0x00,0x12,0x02,0x52,0x40,(byte)0x98};
+    private byte[] dt_ica_ok=new byte[]{0x02,0x02,0x01,0x00,0x00,0x20,0x00};
+    private byte[] dt_ica_false=new byte[]{0x02,0x02,0x01,0x00,0x15,(byte)0xE1,(byte)0xCF};
+    private byte[] dt_ica_set=new byte[]{0x02,0x02,0x03,0x00,0x08,0x01,0x41,0x20,0x62,0x55};
+    private byte[] dt_ica_readOK=new byte[]{0x02,0x02,0x08,0x00,0x00,0x07,0x04};
+
     //命令类型
     private int cmdType = 0;
     private final int ct_check = 1;
     private final int ct_isCer = 2;
     private final int ct_selectCer = 3;
     private final int ct_readCer = 4;
+    private final int ct_sam=20;
     private Timer terCheck = new Timer(); //检测是否读完
 
 
     //收到的数据
     private byte[] buf_ = new byte[2048];
     private byte[] wltBuf = new byte[1024]; //照片数据
+    private byte[] bufic_=new byte[256];
     private int bufCount = 0;
 
     private boolean openState_ = false;
@@ -129,12 +147,28 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
     private boolean isGetCard_=false; //取身份证信息
     private int getCardCount_=0;  //读卡记数
 
+    private int cmd_ic_type=0;
+    private final int ct_ic_open = 1;
+    private final int ct_ic_set = 2;
+    private final int ct_ic_read = 3;
+    private final int ct_ic_readOK = 14;
+
+
     //头像解码
     CVRApi picUnpack;
     Handler cvrHandler = new Handler() {};
 
     private ICardState iCardState_;  //事件接口
 
+    public void readIC()
+    {
+        isIC=true;
+    }
+
+    public void stopReadIC()
+    {
+        isIC=false;
+    }
 
     //取照片数据
     public byte[] getWltBuf()
@@ -184,7 +218,9 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
             terCheck.schedule(task, 0, 200);
             picUnpack=new CVRApi(cvrHandler);
         }
+        cmd_ic_type=0;
         return ix;
+
     }
 
 
@@ -309,6 +345,22 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
 
     }
 
+
+    private void sendData(byte[] bs)
+    {
+        try
+        {
+            write(bs);
+            lastRevTime_ = System.currentTimeMillis();    //记录最后一次串口接收数据的时间
+        }
+        catch(Exception ex) {
+            Lg.e("CardInfo_sendData",ex.toString());
+        };
+
+        terCheck_ = true;
+
+    }
+
     public  void free()
     {
         terCheck.cancel();
@@ -372,19 +424,163 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
         }
     }
 
+    //发送IC卡命令
+    public void sendCmdIc()
+    {
+        if(cmd_ic_type==0)
+        {
+            sendData(dt_ica_open);
+        }else if(cmd_ic_type==ct_ic_open)
+        {
+            sendData(dt_ica_set);
+        }else if(cmd_ic_type==ct_ic_set) {
+            sendData(dt_ica_read);
+        }else if(cmd_ic_type==ct_ic_read)
+        {
+            sendData(dt_ica_read);
+        }
+    }
+
+    public String getUid()
+    {
+        return uid_;
+    }
+
+    //接收的IC卡数据
+    public boolean readIC(byte[] bs)
+    {
+        if(cmd_ic_type==0)
+        {
+            if(isData(bs,dt_ica_ok))
+            {
+                cmd_ic_type=ct_ic_open;
+                return true;
+            }
+        }else  if(cmd_ic_type==ct_ic_open)
+        {
+            if(isData(bs,dt_ica_ok))
+            {
+                cmd_ic_type=ct_ic_set;
+                return true;
+            }
+        }else  if(cmd_ic_type==ct_ic_set)
+        {
+            if(isData(bs,dt_ica_readOK))
+            {
+                cmd_ic_type=ct_ic_read;
+                byte[] bx=new byte[4];
+                System.arraycopy(bs,7,bx,0,4);
+                uid_=byteToStr(bx,4);
+                //接收的IC卡数据
+                dataInfo(ct_ic_readOK,1);
+                return true;
+            }
+        }else if(cmd_ic_type==ct_ic_read)
+        {
+            if(isData(bs,dt_ica_false))
+            {
+                cmd_ic_type=ct_ic_set;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public  String formatStr(String str,int len)
+    {
+        String s="";
+        if(str.length()==len)
+        {
+            s=str;
+        }
+        else if(str.length()<len)
+        {
+            for(int i=str.length();i<len;i++)
+            {
+                s='0'+s;
+            }
+            s=s+str;
+        }else if (str.length()>len)
+        {
+            s=str.substring(str.length()-len);
+
+        }
+
+        return s;
+
+
+    }
+
+    public void readSam()
+    {
+        sendData(ct_sam,dt_sam);
+    }
+
+
+    public String intToStr(byte[] bs,int pos,int len)
+    {
+        String s="";
+        if(bs.length<(pos+len))
+        {
+            return "";
+        }else
+        {
+            long ii=0;long ix=1;
+            try {
+                for (int i = pos; i < pos + len; i++) {
+                    ii += (bs[i]&0xff) * ix;
+                    ix *= 256;
+                }
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+            s=""+ii;
+        }
+        return s;
+    }
+
+    private void getSam_()
+    {
+
+        sam_=formatStr(intToStr(buf_,10+5,1),2)+formatStr(intToStr(buf_,12+5,1),2)+"-"+intToStr(buf_,14+5,4)+
+                "-"+formatStr(intToStr(buf_,18+5,4),10)+"-"+formatStr(intToStr(buf_,22+5,4),10);
+
+        /*
+        String s="";
+        for(int i=0;i<36;i++)
+        {
+           if(i==0)
+           {
+               s=byteToHex(buf_[0]);
+           }else
+           {
+               s+=" "+byteToHex(buf_[i]);
+           }
+        }
+       sam_=s;
+       */
+
+    }
+
+    public String getSam()
+    {
+        return sam_;
+    }
+
 
     //接收数据
     public void onRead(int fd,int len,byte[] buf)
     {
         if(buf==null){return;}
         if(buf.length<len){return;}
-        //Lg.v("onRead",byteToStr(buf,len));
+        lastRevTime_ = System.currentTimeMillis();    //记录最后一次串口接收数据的时间
+        checkCount_ = 0;
+
+        Lg.v("onRead",byteToStr(buf,len)+"_"+cmd_ic_type);
         int btr = len;
-        if(devType.equals("rk312x")&&len>7)
-        {
-            btr=len-7;
-        }
+
         byte[] by = new byte[btr];
+
 
         if (btr > 0)
         {
@@ -398,6 +594,12 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
             }
             */
             System.arraycopy(buf, 0, by, 0, btr);        //依据串口数据长度BytesToRead来接收串口的数据并存放在by数组之中
+
+            if(isIC) {
+                if (readIC(by)) {
+                    return;
+                }
+            }
 
             if ((bufCount + btr) < 2048)
             {
@@ -413,8 +615,7 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
             bufCount += btr;
             toData(bufCount);
         }
-        lastRevTime_ = System.currentTimeMillis();    //记录最后一次串口接收数据的时间
-        checkCount_ = 0;
+
     }
 
     public String byteToHex(byte b) {
@@ -529,6 +730,13 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
                     }
                     isCheck_ = false;
                 }
+            }else if (cmdType == ct_sam)
+            {
+                if(bc>=34)
+                {
+                    getSam_();
+                    dataInfo(ct_sam, info_true);
+                }
             }
         }
         catch(Exception ex) {
@@ -583,6 +791,14 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
                             getCardCount_=0;
                             isCheck();
                         }
+                    }
+
+                    if(isIC)
+                    {
+                        try {
+                            Thread.sleep(50);
+                        }catch (Exception ex){}
+                        sendCmdIc();
                     }
 
                     if(terCheck_) {
@@ -647,14 +863,11 @@ public class CardInfoRk123x extends SerialPortCom implements ICardInfo{
                 }
                 else
                 {
-
                     if (l >= 1)
                     {
-
                         dataInfo(cmdType, info_no);
                         openState_ = false;
                         isCheck_ = false;
-
                     }
                 }
             }

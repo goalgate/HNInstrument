@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.SurfaceView;
 
 import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Alerts.Alert_IP;
 import com.hninstrument.Alerts.Alert_Message;
 import com.hninstrument.Alerts.Alert_Server;
@@ -77,5 +78,11 @@ public abstract class FunctionActivity extends RxActivity implements IPhotoView,
     protected void onDestroy() {
         super.onDestroy();
         idp.idCardClose();
+    }
+    @Override
+    public void onSetText(String Msg) {
+        if(alert_message.Showing()){
+            ToastUtils.showLong(Msg);
+        }
     }
 }

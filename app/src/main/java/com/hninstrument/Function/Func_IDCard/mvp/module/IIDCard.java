@@ -15,6 +15,8 @@ public interface IIDCard {
 
     void onReadCard();
 
+    void onReadSAM();
+
     void onStopReadCard();
 
     void onClose();
@@ -25,6 +27,8 @@ public interface IIDCard {
 //        void onSetInfo(CardInfoRk123x cardInfo);
 
         void onSetInfo(ICardInfo cardInfo);
+
+        void onSetText(String Msg);
     }
 
 

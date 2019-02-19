@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -14,6 +15,7 @@ import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.AppInit;
+import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.R;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Lockup;
@@ -55,6 +57,12 @@ public class Alert_Message {
         msg_network = (TextView) messageView.findViewById(R.id.msg_network);
         msg_iccard = (TextView) messageView.findViewById(R.id.msg_iccard);
         msg_lockState = (TextView) messageView.findViewById(R.id.msg_lockState);
+        msg_iccard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IDCardPresenter.getInstance().readSam();
+            }
+        });
         //msg_doorState = (TextView) messageView.findViewById(R.id.msg_doorState);
         messageAlert = new AlertView("信息显示", null, null, new String[]{"确定"}, null, this.context, AlertView.Style.Alert, new OnItemClickListener() {
             @Override

@@ -8,4 +8,6 @@ public interface IIDCardView {
     void onsetCardInfo(ICardInfo cardInfo);
 
     void onsetCardImg(Bitmap bmp);
+
+    void onSetText(String Msg);
 }

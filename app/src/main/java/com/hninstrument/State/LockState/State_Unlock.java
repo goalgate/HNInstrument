@@ -1,6 +1,9 @@
 package com.hninstrument.State.LockState;
 
 
+import com.hninstrument.AppInit;
+import com.hninstrument.Config.HeBeiDanNing_Config;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 
 /**
@@ -19,8 +22,10 @@ public class State_Unlock extends LockState {
 
     @Override
     public void onHandle(Lock lock) {
-        sp.OutD9(false);
-        alarming = false;
+        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())){
+            sp.OutD9(false);
+            alarming = false;
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ public interface INetDaSocketEvent {
     public abstract void onAI(int num, int cmdType, int[] value);  //命令回应  num 连接编号 cmdType命令类型   value返回值
 
 
+
     /*********************************************************************
      public  void onOpen(int num,int state)  //打开状态 num 连接编号  state状态  1为连接 0为断开
      {

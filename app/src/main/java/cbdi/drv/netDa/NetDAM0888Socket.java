@@ -37,17 +37,17 @@ public class NetDAM0888Socket {
     private boolean isAI=true; //
 
     //接收数据最后时间
-    private long lastRevTime_= System.currentTimeMillis();;
+    private long lastRevTime_=System.currentTimeMillis();;
     private Timer terCheck = new Timer(); //检测是否连接
     private final int checkTime_=30;//检测时间 x+5秒
     private Timer terDA = new Timer(); //采集时间
     private boolean isRev_=true;
 
-    private NetDAM0888CMD cmd=new NetDAM0888CMD();
+    private NetDAM0888CMD  cmd=new NetDAM0888CMD();
     private int[] data_ai=new int[8]; //8个模拟量采集值
     private byte data_di=0;
     private byte data_do=0;
-    private NetDaSocketInfo netDaInfo=new NetDaSocketInfo();
+    private NetDaSocketInfo  netDaInfo=new NetDaSocketInfo();
 
     public NetDAM0888CMD getCmd() {
         return cmd;
@@ -128,7 +128,7 @@ public class NetDAM0888Socket {
                     }
 
                     if(r>-1){
-                        lastRevTime_= System.currentTimeMillis();
+                        lastRevTime_=System.currentTimeMillis();
                         /*
                         String testStr="";
                         for(int i=0;i<r;i++)
@@ -221,7 +221,7 @@ public class NetDAM0888Socket {
         long l = (System.currentTimeMillis() - lastRevTime_) / 1000;
         if (l >checkTime_)
         {
-            lastRevTime_= System.currentTimeMillis();
+            lastRevTime_=System.currentTimeMillis();
             new Thread(){
                 @Override
                 public void run()
@@ -402,6 +402,9 @@ public class NetDAM0888Socket {
                 //把网络访问的代码放在这里
             }
         }.start();
+
+
+
         //return
     }
 

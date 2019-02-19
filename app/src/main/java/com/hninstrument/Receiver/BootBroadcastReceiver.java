@@ -1,25 +1,9 @@
 package com.hninstrument.Receiver;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
-import com.blankj.utilcode.util.SPUtils;
-import com.hninstrument.AppInit;
-import com.hninstrument.Config.BaseConfig;
-import com.hninstrument.MainActivity;
-import com.hninstrument.Service.SwitchService;
 import com.hninstrument.SplashActivity;
-import com.hninstrument.Tools.ServerConnectionUtil;
-
-import java.util.Calendar;
-
-import cbdi.log.Lg;
-
-import static android.content.Context.ALARM_SERVICE;
-
 
 /**
  * Created by zbsz on 2017/7/28.

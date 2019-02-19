@@ -7,6 +7,10 @@ import java.util.HashMap;
  */
 
 public class NetDaSocketInfo {
+    public final int cmdType_ai=4; //查询8路模拟量
+    public final int cmdType_di=2; //查询8路开关量
+    public final int cmdType_do=1; //查询8路断电器状态
+    public final int cmdType_ctrl=5; //断电器输出控制
     private HashMap<Integer,String> inStateType;
     public NetDaSocketInfo()
     {

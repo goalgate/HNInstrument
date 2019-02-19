@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.hninstrument.AppInit;
 import com.hninstrument.Config.HLJ_Config;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,8 @@ public class State_Lockup extends LockState {
     }
     @Override
     public void onHandle(Lock lock) {
-        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HLJ_Config.class.getName())){
+        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HLJ_Config.class.getName())&&
+                !AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())){
             sp.OutD9(true);
             if(AppInit.getInstrumentConfig().disAlarm()){
                 Observable.timer(60, TimeUnit.SECONDS)

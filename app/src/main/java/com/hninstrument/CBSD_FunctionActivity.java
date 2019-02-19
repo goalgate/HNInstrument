@@ -8,9 +8,11 @@ import android.view.Gravity;
 import android.view.SurfaceView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Alerts.Alert_IP;
 import com.hninstrument.Alerts.Alert_Message;
 import com.hninstrument.Alerts.Alert_Server;
@@ -176,7 +178,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         idp.readCard();
         pp.PhotoPresenterSetView(this);
         pp.setDisplay(surfaceView.getHolder());
-        operation.setState(new LockingState());
+        //operation.setState(new LockingState());
     }
 
     @Override
@@ -194,6 +196,13 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
         if (ins_type.noise()) {
             MediaHelper.mediaRealese();
+        }
+    }
+
+    @Override
+    public void onSetText(String Msg) {
+        if(alert_message.Showing()){
+            ToastUtils.showLong(Msg);
         }
     }
 
