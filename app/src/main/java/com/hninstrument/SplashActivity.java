@@ -8,11 +8,13 @@ import android.support.annotation.Nullable;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.R;
+import com.hninstrument.Tools.NetInfo;
 
 /**
  * Created by zbsz on 2017/12/8.
@@ -27,8 +29,14 @@ public class SplashActivity extends Activity {
         setContentView(R.layout.activity_splash);
         SPUtils SP_Config = SPUtils.getInstance(PREFS_NAME);
         if (SP_Config.getBoolean("firstStart", true)) {
-            ActivityUtils.startActivity(getPackageName(),getPackageName()+".StartActivity");
-            this.finish();
+            if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(),getPackageName()+".StartActivityByDN");
+                this.finish();
+            }else{
+                ActivityUtils.startActivity(getPackageName(),getPackageName()+".StartActivity");
+                this.finish();
+            }
+
         }else {
             if(SP_Config.getString("devid").substring(6,7).equals(String.valueOf(1))){
                 SP_Config.put("devid",SP_Config.getString("devid").substring(0,6)+"3"+SP_Config.getString("devid").substring(7,10));

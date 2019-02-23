@@ -15,6 +15,7 @@ import android.widget.Button;
 
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Config.HN_Config;
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import cbdi.drv.card.ICardInfo;
+import cbdi.log.Lg;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
@@ -186,69 +188,84 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
 
     @Override
     public void onsetCardImg(Bitmap bmp) {
-        headphoto = bmp;
+        try {
+            headphoto = bmp;
+        }catch (Exception e){
+            ToastUtils.showLong(e.toString());
+            Lg.e("要捕捉的异常",e.toString());
+        }
     }
 
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
-        if (alert_message.Showing()) {
-            alert_message.setICCardText(cardInfo.cardId());
-        } else {
-            this.cardInfo = cardInfo;
-            tips.setText(cardInfo.name() + "刷卡中，请稍后");
-            if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
-                if (getState(LockingState.class)) {
-                    person1.setCardId(cardInfo.cardId());
-                    person1.setName(cardInfo.name());
-                } else if (getState(OneUnlockState.class)) {
-                    person2.setCardId(cardInfo.cardId());
-                    person2.setName(cardInfo.name());
-                    if (person1.getCardId().equals(person2.getCardId())) {
-                        tips.setText("请不要连续输入同一个管理员的信息");
-                        MediaHelper.play(MediaHelper.Text.err_samePerson);
-                        return;
-                    } else {
-                        if (checkChange != null) {
-                            checkChange.dispose();
-                        }
-                    }
-                } else if (getState(TwoUnlockState.class)) {
-                    EventBus.getDefault().post(new CloseDoorEvent());
-                    iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
-                    tips.setText("已进入设防状态");
-                    // MediaHelper.play(MediaHelper.Text.relock_opt);
-                }
-                if (!ins_type.isGetOneShot()) {
-                    pp.capture();
-                } else {
-                    pp.getOneShut();
-                }
-                idp.stopReadCard();
-            } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
-                if (!ins_type.isGetOneShot()) {
-                    pp.capture();
-                } else {
-                    pp.getOneShut();
-                }
-                idp.stopReadCard();
+        try{
+            if (alert_message.Showing()) {
+                alert_message.setICCardText(cardInfo.cardId());
             } else {
-                connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response != null) {
-                            if (response.startsWith("true")) {
-                                if (response.split("\\|").length > 1) {
-                                    persontype = response.split("\\|")[1];
-                                    SPUtils.getInstance("personData").put(cardInfo.cardId(), persontype);
-                                    if (persontype.equals("1")) {
-                                        if (getState(LockingState.class)) {
-                                            person1.setCardId(cardInfo.cardId());
-                                            person1.setName(cardInfo.name());
-                                        } else if (getState(OneUnlockState.class)) {
-                                            person2.setCardId(cardInfo.cardId());
-                                            person2.setName(cardInfo.name());
+                this.cardInfo = cardInfo;
+                tips.setText(cardInfo.name() + "刷卡中，请稍后");
+                if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("1")) {
+                    if (getState(LockingState.class)) {
+                        person1.setCardId(cardInfo.cardId());
+                        person1.setName(cardInfo.name());
+                    } else if (getState(OneUnlockState.class)) {
+                        person2.setCardId(cardInfo.cardId());
+                        person2.setName(cardInfo.name());
+                        if (person1.getCardId().equals(person2.getCardId())) {
+                            tips.setText("请不要连续输入同一个管理员的信息");
+                            MediaHelper.play(MediaHelper.Text.err_samePerson);
+                            return;
+                        } else {
+                            if (checkChange != null) {
+                                checkChange.dispose();
+                            }
+                        }
+                    } else if (getState(TwoUnlockState.class)) {
+                        EventBus.getDefault().post(new CloseDoorEvent());
+                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
+                        tips.setText("已进入设防状态");
+                        // MediaHelper.play(MediaHelper.Text.relock_opt);
+                    }
+                    if (!ins_type.isGetOneShot()) {
+                        pp.capture();
+                    } else {
+                        pp.getOneShut();
+                    }
+                    idp.stopReadCard();
+                } else if ((persontype = SPUtils.getInstance("personData").getString(cardInfo.cardId())).equals("2")) {
+                    if (!ins_type.isGetOneShot()) {
+                        pp.capture();
+                    } else {
+                        pp.getOneShut();
+                    }
+                    idp.stopReadCard();
+                } else {
+                    connectionUtil.post(config.getString("ServerId") + ins_type.getPersonInfoPrefix() + "dataType=queryPersion" + "&daid=" + config.getString("devid") + "&id=" + cardInfo.cardId(), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response != null) {
+                                if (response.startsWith("true")) {
+                                    if (response.split("\\|").length > 1) {
+                                        persontype = response.split("\\|")[1];
+                                        SPUtils.getInstance("personData").put(cardInfo.cardId(), persontype);
+                                        if (persontype.equals("1")) {
+                                            if (getState(LockingState.class)) {
+                                                person1.setCardId(cardInfo.cardId());
+                                                person1.setName(cardInfo.name());
+                                            } else if (getState(OneUnlockState.class)) {
+                                                person2.setCardId(cardInfo.cardId());
+                                                person2.setName(cardInfo.name());
+                                            }
                                         }
+                                        if (!ins_type.isGetOneShot()) {
+                                            pp.capture();
+                                        } else {
+                                            pp.getOneShut();
+                                        }
+                                        idp.stopReadCard();
                                     }
+                                } else {
+                                    persontype = "0";
                                     if (!ins_type.isGetOneShot()) {
                                         pp.capture();
                                     } else {
@@ -257,6 +274,8 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     idp.stopReadCard();
                                 }
                             } else {
+                                tips.setText("人员身份查询：服务器上传出错");
+//                            MediaHelper.play(MediaHelper.Text.err_connect);
                                 persontype = "0";
                                 if (!ins_type.isGetOneShot()) {
                                     pp.capture();
@@ -265,52 +284,52 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                 }
                                 idp.stopReadCard();
                             }
-                        } else {
-                            tips.setText("人员身份查询：服务器上传出错");
-//                            MediaHelper.play(MediaHelper.Text.err_connect);
-                            persontype = "0";
-                            if (!ins_type.isGetOneShot()) {
-                                pp.capture();
-                            } else {
-                                pp.getOneShut();
-                            }
-                            idp.stopReadCard();
                         }
-                    }
-                });
+                    });
+                }
             }
+        }catch (Exception e){
+            ToastUtils.showLong(e.toString());
+            Lg.e("要捕捉的异常",e.toString());
         }
+
     }
 
     @Override
     public void onGetPhoto(Bitmap bmp) {
-        photo = compressImage(bmp);
-        if (persontype.equals("1")) {
-            // if (!persontype.equals("5")) {
-            if (getState(LockingState.class) || getState(OneUnlockState.class)) {
-                if (ins_type.isFace()) {
-                    face_upData();
-                } else {
-                    noface_upData();
+        try{
+            photo = compressImage(bmp);
+            if (persontype.equals("1")) {
+                // if (!persontype.equals("5")) {
+                if (getState(LockingState.class) || getState(OneUnlockState.class)) {
+                    if (ins_type.isFace()) {
+                        face_upData();
+                    } else {
+                        noface_upData();
+                    }
+                } else if (getState(TwoUnlockState.class)) {
+                    operation.doNext();
+                    pp.setDisplay(surfaceView.getHolder());
+                    idp.readCard();
                 }
-            } else if (getState(TwoUnlockState.class)) {
-                operation.doNext();
-                pp.setDisplay(surfaceView.getHolder());
-                idp.readCard();
+            } else if (persontype.equals("2")) {
+                if (checkChange != null) {
+                    checkChange.dispose();
+                }
+                checkRecord(2);
+            } else if (persontype.equals("3")) {
+                if (checkChange != null) {
+                    checkChange.dispose();
+                }
+                checkRecord(3);
+            } else if (persontype.equals("0")) {
+                unknownPersonData();
             }
-        } else if (persontype.equals("2")) {
-            if (checkChange != null) {
-                checkChange.dispose();
-            }
-            checkRecord(2);
-        } else if (persontype.equals("3")) {
-            if (checkChange != null) {
-                checkChange.dispose();
-            }
-            checkRecord(3);
-        } else if (persontype.equals("0")) {
-            unknownPersonData();
+        }catch (Exception e){
+            ToastUtils.showLong(e.toString());
+            Lg.e("要捕捉的异常",e.toString());
         }
+
     }
 
     void noface_upData() {

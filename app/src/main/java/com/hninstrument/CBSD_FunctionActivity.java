@@ -21,6 +21,7 @@ import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -48,6 +49,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.OnClick;
 import cbdi.drv.card.ICardInfo;
+import cbdi.log.Lg;
 import io.reactivex.disposables.Disposable;
 
 public abstract class CBSD_FunctionActivity extends RxActivity implements IPhotoView, IIDCardView, AddPersonWindow.OptionTypeListener {
@@ -138,6 +140,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Lg.e("生命周期","onCreate");
         BarUtils.hideStatusBar(this);
         idp.idCardOpen();
         pp.initCamera();
@@ -160,6 +163,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onStart() {
         super.onStart();
+        Lg.e("生命周期","onStart");
         pp.setParameter(surfaceView.getHolder());
     }
 
@@ -167,13 +171,18 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onRestart() {
         super.onRestart();
-        pp.initCamera();
+        Lg.e("生命周期","onRestart");
+        if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
+            pp.initCamera();
+        }
+
 
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Lg.e("生命周期","onResume");
         idp.IDCardPresenterSetView(this);
         idp.readCard();
         pp.PhotoPresenterSetView(this);
@@ -182,8 +191,16 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        Lg.e("生命周期","onStop");
+
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
+        Lg.e("生命周期","onPause");
         idp.IDCardPresenterSetView(null);
         idp.stopReadCard();
         pp.PhotoPresenterSetView(null);
@@ -192,6 +209,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Lg.e("生命周期","onDestroy");
         idp.idCardClose();
         AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
         if (ins_type.noise()) {

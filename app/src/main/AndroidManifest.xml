@@ -24,6 +24,7 @@
         <activity android:name=".CBSD_HuBeiWeiHuaActivity" android:launchMode="singleInstance"></activity>
         <activity android:name=".CBSD_SHGJActivity" android:launchMode="singleInstance"></activity>
         <activity android:name=".CBSD_CommonActivity" android:launchMode="singleInstance"></activity>
+        <activity android:name=".StartActivityByDN" android:launchMode="singleInstance"></activity>
         <service android:name=".Service.SwitchService"></service>
         <service android:name=".Service.SwitchServiceByDN"></service>
         <receiver
@@ -62,4 +63,7 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-permission android:name="android.permission.GET_TASKS" />
+
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.DELETE_PACKAGES" />
 </manifest>

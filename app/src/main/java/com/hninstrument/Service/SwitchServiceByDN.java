@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.EncodeUtils;
@@ -42,7 +43,9 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -402,12 +405,15 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
             //daData.setDI(value);
             //tcatd.setText(daData.getDI(0).getName()+daData.getDI(0).getVal()); //第一路
             Lg.e("开关量变化",String.valueOf(value));
-            if (value == 0) {
-                if (getLockState(State_Lockup.class)) {
-                    lock.doNext();
-                    alarmRecord();
+            if(num == config.getInt("moduleID")){
+                if (value == 0) {
+                    if (getLockState(State_Lockup.class)) {
+                        lock.doNext();
+                        alarmRecord();
+                    }
                 }
             }
+
             //tcatd.setText("模块号"+(num/1000)+"   通道号："+(num%1000)+"   开关量："+value); //
         }
     }
@@ -421,6 +427,47 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
 //            daData.setAI(value);
 //            //info.setText(daData.getAI(i).getName() +daData.getAI(i).getVal()+ daData.getAI(i).getUnit());//第一路
 //        }
+    }
+
+
+    public static boolean installApp(String apkPath) {
+        Process process = null;
+        BufferedReader successResult = null;
+        BufferedReader errorResult = null;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder errorMsg = new StringBuilder();
+        try {
+            process = new ProcessBuilder("pm", "install", "-i", "com.example.ddd", "-r", apkPath).start();
+            successResult = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            errorResult = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            String s;
+            while ((s = successResult.readLine()) != null) {
+                successMsg.append(s);
+            }
+            while ((s = errorResult.readLine()) != null) {
+                errorMsg.append(s);
+            }
+        } catch (Exception e) {
+
+        } finally {
+            try {
+                if (successResult != null) {
+                    successResult.close();
+                }
+                if (errorResult != null) {
+                    errorResult.close();
+                }
+            } catch (Exception e) {
+
+            }
+            if (process != null) {
+                process.destroy();
+            }
+        }
+        Log.e("result", "" + errorMsg.toString());
+        //Toast.makeText(ctx, +errorMsg.toString() + "  " + successMsg, Toast.LENGTH_LONG).show();
+        //如果含有“success”单词则认为安装成功
+        return successMsg.toString().equalsIgnoreCase("success");
     }
 
 }

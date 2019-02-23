@@ -3,6 +3,9 @@ package cbdi.drv.netDa;
 import android.os.Handler;
 import android.os.Message;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
@@ -30,6 +33,15 @@ public class NetDACVCIP608Socket {
     private boolean enable_=true;  //功能是否启用
     private int openState_=0;  //设备打开状态
     private int number_=1;   //设备编号
+    private boolean  noAlarmHost=true; //没有报警主机
+
+    public boolean isNoAlarmHost() {
+        return noAlarmHost;
+    }
+
+    public void setNoAlarmHost(boolean noAlarmHost) {
+        this.noAlarmHost = noAlarmHost;
+    }
 
     //接收数据最后时间
     private long lastRevTime_=System.currentTimeMillis();;
@@ -102,10 +114,9 @@ public class NetDACVCIP608Socket {
                         //5.分析数据
                         byte[] data = packet.getData();
                         int len = packet.getLength();
-                        if(len>-1){
+                        if(len>0){
                             lastRevTime_=System.currentTimeMillis();
                             //00 0A FF F5 45 20 30 30 31 30 20 31 20 33 0D
-
                             if(len>=15)
                             {
                                 if((data[2]&0xff)==0xff&&data[4]==0x45)
@@ -129,6 +140,18 @@ public class NetDACVCIP608Socket {
                                           message.what = 2;
                                           handler.sendMessage(message);
                                       }
+                                }
+                            }
+
+                            if(noAlarmHost)
+                            {
+                                try
+                                {
+                                    byte[] bdata =new byte[]{0x41,0x20,0x31,0x0D};
+                                    DatagramPacket response = new DatagramPacket(bdata, bdata.length, packet.getAddress(), packet.getPort());
+                                    server.send(response);
+                                }catch (Exception e){
+                                    e.printStackTrace();
                                 }
                             }
                         }else
@@ -214,7 +237,7 @@ public class NetDACVCIP608Socket {
             };
             server = new DatagramSocket(port_);
             isRev_=true;
-            new Thread(new NetDACVCIP608Socket.RecvThread()).start();
+            new Thread(new RecvThread()).start();
 
             openState_=1;
 

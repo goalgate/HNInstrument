@@ -3,12 +3,15 @@ package com.hninstrument;
 import android.app.Application;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
+
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HNTest_Config;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
+import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Config.WZ_Config;
@@ -17,6 +20,10 @@ import com.hninstrument.greendao.DaoMaster;
 import com.hninstrument.greendao.DaoSession;
 import com.squareup.leakcanary.LeakCanary;
 import com.ys.myapi.MyManager;
+
+import java.io.File;
+import java.io.IOException;
+
 import cbdi.log.Lg;
 
 /**
@@ -60,7 +67,15 @@ public class AppInit extends Application {
 
         super.onCreate();
 
-        Lg.setIsSave(true);
+        Lg.setIsSave(false);
+
+        File file = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Exception/");
+
+        if(!file.exists()){
+            file.mkdir();
+        }
+
+        Lg.setLogPath(Environment.getExternalStorageDirectory().getPath() + File.separator + "Exception/");
 
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return;

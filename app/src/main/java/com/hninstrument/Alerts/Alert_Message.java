@@ -14,7 +14,9 @@ import com.bigkoo.alertview.OnItemClickListener;
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
+import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.R;
 import com.hninstrument.State.LockState.Lock;
@@ -34,6 +36,7 @@ public class Alert_Message {
     public Alert_Message(Context context) {
         this.context = context;
     }
+
     public static final String STATICIP = "StaticIp";
     public static final String DHCP = "DHCP";
     private AlertView messageAlert;
@@ -60,9 +63,15 @@ public class Alert_Message {
         msg_iccard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IDCardPresenter.getInstance().readSam();
+                if (AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
+                    ToastUtils.showLong("网络模块ID号为 "+String.valueOf(SPUtils.getInstance("config").getInt("moduleID")/1000));
+                }else{
+                    IDCardPresenter.getInstance().readSam();
+                }
             }
         });
+
+
         //msg_doorState = (TextView) messageView.findViewById(R.id.msg_doorState);
         messageAlert = new AlertView("信息显示", null, null, new String[]{"确定"}, null, this.context, AlertView.Style.Alert, new OnItemClickListener() {
             @Override
@@ -72,6 +81,7 @@ public class Alert_Message {
         });
         messageAlert.addExtView(messageView);
     }
+
     public void showMessage() {
         msg_daid.setText(SPUtils.getInstance("config").getString("devid"));
         msg_ip.setText(NetworkUtils.getIPAddress(true));
@@ -79,7 +89,7 @@ public class Alert_Message {
         msg_software.setText(AppUtils.getAppVersionName());
         if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
             msg_ipmode.setText("当前以太网为动态IP获取模式");
-        } else if(STATICIP .equals(AppInit.getMyManager().getEthMode())){
+        } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
             msg_ipmode.setText("当前以太网为静态IP获取模式");
         } else {
             msg_ipmode.setText("当前固件版本过低，无法获取详细信息");
@@ -104,18 +114,18 @@ public class Alert_Message {
         messageAlert.show();
     }
 
-    public boolean Showing(){
-        return  messageAlert.isShowing();
+    public boolean Showing() {
+        return messageAlert.isShowing();
     }
 
-    public void setICCardText(String id){
+    public void setICCardText(String id) {
         msg_iccard.setText(id);
     }
 
-    private Handler handler = new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case 0x666:
                     msg_network.setText("设备与外网通信成功");
                     break;
@@ -129,6 +139,7 @@ public class Alert_Message {
     private void ping() {
         new Thread(new Runnable() {
             String result = null;
+
             @Override
             public void run() {
                 try {
