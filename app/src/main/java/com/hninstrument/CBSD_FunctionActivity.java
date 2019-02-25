@@ -152,7 +152,9 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                 iv_network.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.wifi));
             }
         });
-        AppInit.getMyManager().ethEnabled(true);
+        if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
+            AppInit.getMyManager().ethEnabled(true);
+        }
         operation = new Operation(new LockingState());
         if (ins_type.noise()) {
             MediaHelper.mediaOpen();
@@ -211,7 +213,9 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         super.onDestroy();
         Lg.e("生命周期","onDestroy");
         idp.idCardClose();
-        AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
+        if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
+            AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
+        }
         if (ins_type.noise()) {
             MediaHelper.mediaRealese();
         }

@@ -5,5 +5,5 @@
     <string name="server_ip">服务器地址:</string>
     <string name="dev_id_hint">默认为原机ID</string>
     <string name="server_ip_hint">请设置服务器地址</string>
-
+    <string name="accessibility_service_description">自动安装</string>
 </resources>

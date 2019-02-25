@@ -45,6 +45,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -94,7 +95,8 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
     Disposable dis_stateRecord;
 
 
-    private NetDACVCIP608Socket daIP=null;
+    private NetDACVCIP608Socket daIP = null;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -114,8 +116,8 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
         super.onCreate();
         EventBus.getDefault().register(this);
         lock = Lock.getInstance(new State_Lockup(sp));
-        autoUpdate();
-        daIP=new NetDACVCIP608Socket();
+        //autoUpdate();
+        daIP = new NetDACVCIP608Socket();
         daIP.open(5000);
         daIP.setEvent(this);
         dis_testNet = Observable.interval(5, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
@@ -313,8 +315,8 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
             if (dis_TemHum != null) {
                 dis_TemHum.dispose();
             }
-        }catch (NullPointerException e){
-            Lg.e("Exception",e.getMessage());
+        } catch (NullPointerException e) {
+            Lg.e("Exception", e.getMessage());
         }
 
         EventBus.getDefault().unregister(this);
@@ -377,7 +379,11 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
                 @Override
                 public void run() {
                     // 要执行的代码
-                    AppInit.getMyManager().reboot();
+                    try {
+                        Runtime.getRuntime().exec("su -c \"/system/bin/reboot\"");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     Log.e("信息提示", "关机了");
                 }
             };
@@ -404,8 +410,8 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
             //Lg.v("onDI:",""+cmdType+"_"+value);
             //daData.setDI(value);
             //tcatd.setText(daData.getDI(0).getName()+daData.getDI(0).getVal()); //第一路
-            Lg.e("开关量变化",String.valueOf(value));
-            if(num == config.getInt("moduleID")){
+            Lg.e("开关量变化", String.valueOf(value));
+            if (num == config.getInt("moduleID")) {
                 if (value == 0) {
                     if (getLockState(State_Lockup.class)) {
                         lock.doNext();
@@ -428,46 +434,4 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
 //            //info.setText(daData.getAI(i).getName() +daData.getAI(i).getVal()+ daData.getAI(i).getUnit());//第一路
 //        }
     }
-
-
-    public static boolean installApp(String apkPath) {
-        Process process = null;
-        BufferedReader successResult = null;
-        BufferedReader errorResult = null;
-        StringBuilder successMsg = new StringBuilder();
-        StringBuilder errorMsg = new StringBuilder();
-        try {
-            process = new ProcessBuilder("pm", "install", "-i", "com.example.ddd", "-r", apkPath).start();
-            successResult = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            errorResult = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String s;
-            while ((s = successResult.readLine()) != null) {
-                successMsg.append(s);
-            }
-            while ((s = errorResult.readLine()) != null) {
-                errorMsg.append(s);
-            }
-        } catch (Exception e) {
-
-        } finally {
-            try {
-                if (successResult != null) {
-                    successResult.close();
-                }
-                if (errorResult != null) {
-                    errorResult.close();
-                }
-            } catch (Exception e) {
-
-            }
-            if (process != null) {
-                process.destroy();
-            }
-        }
-        Log.e("result", "" + errorMsg.toString());
-        //Toast.makeText(ctx, +errorMsg.toString() + "  " + successMsg, Toast.LENGTH_LONG).show();
-        //如果含有“success”单词则认为安装成功
-        return successMsg.toString().equalsIgnoreCase("success");
-    }
-
 }
