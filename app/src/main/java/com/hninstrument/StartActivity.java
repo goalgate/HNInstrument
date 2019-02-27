@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
@@ -61,7 +62,9 @@ public class StartActivity extends Activity {
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_ShangHaiActivity");
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SHGJ_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_SHGJActivity");
-            }else{
+            }else if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())){
+                ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HeBeiActivity");
+            } else{
                 //ActivityUtils.startActivity(getPackageName(), getPackageName() + ".MainActivity");
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_CommonActivity");
             }

@@ -37,8 +37,11 @@
         <activity
             android:name=".StartActivityByDN"
             android:launchMode="singleInstance"></activity>
-        <activity android:name=".CBSD_HeibeiDNActivity"></activity>
+        <activity android:name=".CBSD_HeibeiDNActivity"
+            android:launchMode="singleInstance"></activity>
 
+        <activity android:name=".CBSD_HeBeiActivity"
+            android:launchMode="singleInstance"></activity>
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.science.fileprovider"

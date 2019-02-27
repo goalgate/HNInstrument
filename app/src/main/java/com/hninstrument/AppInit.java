@@ -85,7 +85,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeBeiDanNing_Config();
+        InstrumentConfig = new HeBei_Config();
 
         manager = MyManager.getInstance(this);
 
