@@ -240,7 +240,27 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
                         if (response != null) {
-                            if (response.startsWith("true") && (int) Double.parseDouble(response.substring(5, response.length())) < 60) {//这里要改
+                            if(AppInit.getInstrumentConfig().doubleCheck()){
+                                if (response.startsWith("true") && (int) Double.parseDouble(response.substring(5, response.length())) < 85) {//这里要改
+                                    connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
+                                            config.getString("ServerId"),
+                                            new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
+                                            new ServerConnectionUtil.Callback() {
+                                                @Override
+                                                public void onResponse(String response) {
+                                                    if (response != null) {
+                                                        tips.setText("开门记录已上传到服务器");
+                                                    } else {
+                                                        tips.setText("无法连接到服务器");
+                                                        MediaHelper.play(MediaHelper.Text.err_connect_ns);
+                                                    }
+                                                }
+                                            });
+                                } else {
+                                    tips.setText("上传失败，请注意是否单人双卡操作");
+                                    MediaHelper.play(MediaHelper.Text.err_omtk);
+                                }
+                            }else{
                                 connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                         config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
@@ -255,10 +275,8 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                                                 }
                                             }
                                         });
-                            } else {
-                                tips.setText("上传失败，请注意是否单人双卡操作");
-                                MediaHelper.play(MediaHelper.Text.err_omtk);
                             }
+
                         } else {
                             tips.setText("开门记录数据：无法连接到服务器");
                             MediaHelper.play(MediaHelper.Text.err_connect_ns);

@@ -80,4 +80,9 @@ public class SHDMJ_config extends BaseConfig {
     public boolean noise() {
         return false;
     }
+
+    @Override
+    public boolean doubleCheck() {
+        return true;
+    }
 }

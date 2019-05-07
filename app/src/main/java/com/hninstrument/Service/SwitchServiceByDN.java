@@ -412,7 +412,8 @@ public class SwitchServiceByDN extends Service implements INetDaSocketEvent {
             //tcatd.setText(daData.getDI(0).getName()+daData.getDI(0).getVal()); //第一路
             Lg.e("开关量变化", String.valueOf(value));
             if (num == config.getInt("moduleID")) {
-                if (value == 0) {
+//                if (value == 0) {      /*0是接断开报警*/
+                if (value == 1) {       /*1是闭合报警*/
                     if (getLockState(State_Lockup.class)) {
                         lock.doNext();
                         alarmRecord();

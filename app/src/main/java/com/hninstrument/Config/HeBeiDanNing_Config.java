@@ -18,7 +18,7 @@ public class HeBeiDanNing_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://113.140.1.136:8601/";
+        return "http://211.90.38.12:8081/";
     }
 
     @Override
@@ -78,6 +78,11 @@ public class HeBeiDanNing_Config extends BaseConfig {
 
     @Override
     public boolean noise() {
+        return false;
+    }
+
+    @Override
+    public boolean doubleCheck() {
         return false;
     }
 }

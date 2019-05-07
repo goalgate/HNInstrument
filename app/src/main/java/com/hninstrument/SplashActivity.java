@@ -24,6 +24,7 @@ import com.hninstrument.Tools.NetInfo;
 public class SplashActivity extends Activity {
 
     private static final String PREFS_NAME = "config";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +46,9 @@ public class SplashActivity extends Activity {
             }
             if("http://115.159.241.118:8009/".equals(SP_Config.getString("ServerId"))){
                 SP_Config.put("ServerId","https://gdmb.wxhxp.cn:8009/");
+            }
+            if("http://113.140.1.136:8601/".equals(SP_Config.getString("ServerId"))){
+                SP_Config.put("ServerId","http://211.90.38.12:8081/");
             }
             if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");

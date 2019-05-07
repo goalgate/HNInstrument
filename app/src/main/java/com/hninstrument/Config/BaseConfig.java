@@ -37,4 +37,6 @@ public abstract class BaseConfig {
     public abstract boolean collectBox();
 
     public abstract boolean noise();
+
+    public abstract boolean doubleCheck();
 }

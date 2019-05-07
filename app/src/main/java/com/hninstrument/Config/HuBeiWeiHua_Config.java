@@ -84,4 +84,9 @@ public class HuBeiWeiHua_Config extends BaseConfig{
     public boolean noise() {
         return true;
     }
+
+    @Override
+    public boolean doubleCheck() {
+        return true;
+    }
 }

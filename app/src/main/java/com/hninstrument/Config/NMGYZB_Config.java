@@ -1,15 +1,10 @@
 package com.hninstrument.Config;
 
-import okhttp3.internal.tls.TrustRootIndex;
+public class NMGYZB_Config extends BaseConfig{
 
-/**
- * Created by zbsz on 2018/2/28.
- */
-
-public class GZ_Config extends BaseConfig {
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override
@@ -19,23 +14,24 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public String getPersonInfoPrefix() {
-        return "da_gzmb_persionInfo?";
+        return "cjy/s/fbcjy_updata?";
     }
 
     @Override
     public String getServerId() {
-                return "http://119.29.111.172:7001/";
+        return "http://113.140.1.138:8890";
     }
 
     @Override
     public String getUpDataPrefix() {
-        return "da_gzmb_updata?";
+        return "cjy/s/fbcjy_updata?";
     }
 
     @Override
     public String getDev_prefix() {
-        return "800100";
+        return "800200";
     }
+
 
     @Override
     public int getCheckOnlineTime() {
@@ -44,32 +40,36 @@ public class GZ_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-DA-01";
+        return "CBDI-ID";
     }
 
+    //    @Override
+//    public String getModel() {
+//        return "CBDI-ID";
+//    }
     @Override
     public String getName() {
-        return "防爆采集器";
+        return "库房采集器";
     }
 
     @Override
     public String getProject() {
-        return "GZFB";
+        return "SXYZB";
     }
 
     @Override
     public String getPower() {
-        return "12-18V 2A";
+        return "12V 2A";
     }
 
     @Override
     public boolean isCheckTime() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isGetOneShot() {
-        return false;
+        return true;
     }
 
     @Override
@@ -91,4 +91,6 @@ public class GZ_Config extends BaseConfig {
     public boolean doubleCheck() {
         return true;
     }
+
+
 }

@@ -9,11 +9,14 @@ import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HNTest_Config;
+import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.NMGYZB_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SH_Config;
+import com.hninstrument.Config.SXYZB_Config;
 import com.hninstrument.Config.WZ_Config;
 import com.hninstrument.Config.XA_Config;
 import com.hninstrument.greendao.DaoMaster;
@@ -85,7 +88,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeBei_Config();
+        InstrumentConfig = new HeBeiDanNing_Config();
 
         manager = MyManager.getInstance(this);
 

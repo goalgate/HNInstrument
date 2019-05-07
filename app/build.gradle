@@ -8,7 +8,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
-        versionName "2.5"
+        versionName "2.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -43,6 +43,7 @@ greendao {
     //targetGenDirTest：设置生成单元测试目录
     //generateTests：设置自动生成单元测试用例
 }
+
 def retrofitVersion = '2.2.0'
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')

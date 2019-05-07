@@ -16,7 +16,6 @@ public class HN_Config extends BaseConfig {
         return false;
     }
 
-
     @Override
     public String getPersonInfoPrefix() {
         return "da_gzmb_persionInfo?";
@@ -31,9 +30,6 @@ public class HN_Config extends BaseConfig {
     public String getUpDataPrefix() {
         return "da_gzmb_updata?";
     }
-
-
-
 
     @Override
     public String getDev_prefix() {
@@ -87,6 +83,11 @@ public class HN_Config extends BaseConfig {
 
     @Override
     public boolean noise() {
+        return false;
+    }
+
+    @Override
+    public boolean doubleCheck() {
         return false;
     }
 }

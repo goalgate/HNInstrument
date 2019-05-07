@@ -93,4 +93,9 @@ public class XA_Config extends BaseConfig {
     public boolean noise() {
         return false;
     }
+
+    @Override
+    public boolean doubleCheck() {
+        return true;
+    }
 }

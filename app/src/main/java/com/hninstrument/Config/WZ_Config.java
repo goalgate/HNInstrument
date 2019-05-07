@@ -82,4 +82,9 @@ public class WZ_Config extends BaseConfig {
         return false;
     }
 
+    @Override
+    public boolean doubleCheck() {
+        return true;
+    }
+
 }

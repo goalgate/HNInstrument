@@ -92,7 +92,7 @@ public class Alert_Message {
         } else if (STATICIP.equals(AppInit.getMyManager().getEthMode())) {
             msg_ipmode.setText("当前以太网为静态IP获取模式");
         } else {
-            msg_ipmode.setText("当前固件版本过低，无法获取详细信息");
+            msg_ipmode.setText("IP地址获取方式未知");
         }
         if (NetworkUtils.isConnected()) {
             msg_network.setText("等待外网联通结果");

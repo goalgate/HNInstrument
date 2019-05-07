@@ -1,6 +1,6 @@
 package com.hninstrument.Config;
 
-public class HNTest_Config extends BaseConfig {
+public class    HNTest_Config extends BaseConfig {
     @Override
     public boolean isFace() {
         return true;
@@ -30,17 +30,17 @@ public class HNTest_Config extends BaseConfig {
 
     @Override
     public String getPersonInfoPrefix() {
-        return "fbcjy_updata?";
+        return "cjy/s/fbcjy_updata?";
     }
 
     @Override
     public String getServerId() {
-        return "http://hnyzb.wxhxp.cn:1093/cjy/s/";
+        return "http://hnyzb.wxhxp.cn:1093/";
     }
 
     @Override
     public String getUpDataPrefix() {
-        return "fbcjy_updata?";
+        return "cjy/s/fbcjy_updata?";
     }
 
     @Override
@@ -96,5 +96,10 @@ public class HNTest_Config extends BaseConfig {
     @Override
     public boolean noise() {
         return false;
+    }
+
+    @Override
+    public boolean doubleCheck() {
+        return true;
     }
 }
