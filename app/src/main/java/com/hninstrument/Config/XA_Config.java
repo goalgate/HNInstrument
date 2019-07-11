@@ -31,29 +31,29 @@ public class XA_Config extends BaseConfig {
         return "da_gzmb_updata?";
     }
 
-    @Override
-    public String getDev_prefix() {
-        return "800100";
-    }
 //    @Override
 //    public String getDev_prefix() {
-//        return "800200";
+//        return "800100";
 //    }
+    @Override
+    public String getDev_prefix() {
+        return "800200";
+    }
 
     @Override
     public int getCheckOnlineTime() {
         return 60;
     }
 
-    @Override
-    public String getModel() {
-            return "CBDI-DA-01";
-    }
-
 //    @Override
 //    public String getModel() {
-//        return "CBDI-ID";
+//            return "CBDI-DA-01";
 //    }
+
+    @Override
+    public String getModel() {
+        return "CBDI-ID";
+    }
     @Override
     public String getName() {
         return "库房采集器";
@@ -61,7 +61,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public String getProject() {
-        return "XAFB";
+        return "XAJD";
     }
 
     @Override

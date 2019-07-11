@@ -19,6 +19,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
 import com.hninstrument.Config.HeBeiDanNing_Config;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
 import com.hninstrument.EventBus.PassEvent;
@@ -26,9 +27,11 @@ import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
 import com.hninstrument.Receiver.TimeCheckReceiver;
 import com.hninstrument.Service.SwitchService;
 import com.hninstrument.Service.SwitchServiceByDN;
+import com.hninstrument.State.LockState.State_Lockup;
 import com.hninstrument.State.OperationState.LockingState;
 import com.hninstrument.State.OperationState.OneUnlockState;
 import com.hninstrument.State.OperationState.TwoUnlockState;
+import com.hninstrument.Tools.FileUtils;
 import com.hninstrument.Tools.MediaHelper;
 import com.hninstrument.Tools.ServerConnectionUtil;
 import com.jakewharton.rxbinding2.widget.RxTextView;
@@ -38,6 +41,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,6 +64,8 @@ import io.reactivex.schedulers.Schedulers;
 public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    SimpleDateFormat formatterUri = new SimpleDateFormat("yyyy-MM-dd%20HH:mm:ss");
 
     Disposable disposableTips;
 
@@ -189,15 +195,15 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
     public void onsetCardImg(Bitmap bmp) {
         try {
             headphoto = bmp;
-        }catch (Exception e){
+        } catch (Exception e) {
             ToastUtils.showLong(e.toString());
-            Lg.e("要捕捉的异常",e.toString());
+            Lg.e("要捕捉的异常", e.toString());
         }
     }
 
     @Override
     public void onsetCardInfo(final ICardInfo cardInfo) {
-        try{
+        try {
             if (alert_message.Showing()) {
                 alert_message.setICCardText(cardInfo.cardId());
             } else {
@@ -301,17 +307,33 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
                     });
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             ToastUtils.showLong(e.toString());
-            Lg.e("要捕捉的异常",e.toString());
+            Lg.e("要捕捉的异常", e.toString());
         }
 
     }
-
+    ByteArrayOutputStream baos;
     @Override
     public void onGetPhoto(Bitmap bmp) {
-        try{
+        try {
             photo = compressImage(bmp);
+//            if (alarmPic) {
+//                alarmPic = false;
+//                baos = new ByteArrayOutputStream();
+//                photo.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//                connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"  + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())),
+//                        config.getString("ServerId"),baos.toByteArray(), new ServerConnectionUtil.Callback() {
+//                            @Override
+//                            public void onResponse(String response) {
+//                                if (response == null) {
+//                                    mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())), baos.toByteArray(), 0));
+//                                }
+//                            }
+//                        });
+//                baos.close();
+//                return;
+//            }
             if (persontype.equals("1")) {
                 // if (!persontype.equals("5")) {
                 if (getState(LockingState.class) || getState(OneUnlockState.class)) {
@@ -338,9 +360,9 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
             } else if (persontype.equals("0")) {
                 unknownPersonData();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             ToastUtils.showLong(e.toString());
-            Lg.e("要捕捉的异常",e.toString());
+            Lg.e("要捕捉的异常", e.toString());
         }
 
     }
@@ -415,6 +437,19 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
                                     person2.setFaceReconition((int) Double.parseDouble(response.substring(5, response.length())));
                                     captured1.setImageBitmap(null);
                                     EventBus.getDefault().post(new PassEvent());
+//                                    if(ins_type.getClass().getName().equals(HeBei_Config.class.getName())){
+//                                        Observable.timer(5,TimeUnit.MINUTES)
+//                                                .observeOn(AndroidSchedulers.mainThread())
+//                                                .subscribe(new Consumer<Long>() {
+//                                                    @Override
+//                                                    public void accept(Long aLong) throws Exception {
+//                                                        operation.setState(new LockingState());
+//                                                        EventBus.getDefault().post(new CloseDoorEvent());
+//                                                        iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lockup));
+//                                                        tips.setText("已进入设防状态");
+//                                                    }
+//                                                });
+//                                    }
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
                                     tips.setText(cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
                                     MediaHelper.play(MediaHelper.Text.second_opt);
@@ -545,7 +580,7 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
                 });
     }
 
-    public void waitForCheck(){
+    public void waitForCheck() {
         Observable.timer(30, TimeUnit.SECONDS).subscribeOn(Schedulers.newThread())
                 .compose(CBSD_HeBeiActivity.this.<Long>bindUntilEvent(ActivityEvent.DESTROY))
                 .observeOn(AndroidSchedulers.mainThread())

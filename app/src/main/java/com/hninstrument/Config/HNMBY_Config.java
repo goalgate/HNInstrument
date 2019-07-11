@@ -1,35 +1,34 @@
 package com.hninstrument.Config;
 
-public class SHDMJ_config extends BaseConfig {
-//    上海带门禁
+public class HNMBY_Config extends BaseConfig {
     @Override
     public boolean isFace() {
-        return true;
-    }
-
-    @Override
-    public boolean isTemHum() {
         return false;
     }
 
     @Override
+    public boolean isTemHum() {
+        return true;
+    }
+
+    @Override
     public String getPersonInfoPrefix() {
-        return "da_gzmb_persionInfo?";
+        return null;
     }
 
     @Override
     public String getServerId() {
-        return "http://shjd.snaq.cn:47002/";
+        return "http://119.29.111.172:7001/";
     }
 
     @Override
     public String getUpDataPrefix() {
-        return "da_gzmb_updata?";
+        return null;
     }
 
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
 
     @Override
@@ -39,17 +38,17 @@ public class SHDMJ_config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID-P-H";
+        return "CBDI-DA-01";
     }
 
     @Override
     public String getName() {
-        return "库房采集器";
+        return "防爆采集器";
     }
 
     @Override
     public String getProject() {
-        return "SHFB";
+        return "HNMBY";
     }
 
     @Override

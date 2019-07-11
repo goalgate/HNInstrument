@@ -22,6 +22,7 @@ import com.hninstrument.Bean.DataFlow.UpOpenDoorData;
 import com.hninstrument.Bean.DataFlow.UpPersonRecordData;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.HeBeiDanNing_Config;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.EventBus.AlarmEvent;
 import com.hninstrument.EventBus.NetworkEvent;
@@ -349,11 +350,15 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         tv_temperature.setText(event.getTem() + "℃");
         tv_humidity.setText(event.getHum() + "%");
     }
-
+//    boolean alarmPic = false;
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAlarmEvent(AlarmEvent event) {
         tips.setText("开门报警已被触发");
         MediaHelper.play(MediaHelper.Text.alarm);
+//        if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())){
+//            alarmPic=true;
+//            takepicture();
+//        }
     }
 
     protected void takepicture(){

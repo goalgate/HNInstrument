@@ -8,6 +8,8 @@ import android.os.Environment;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
+import com.hninstrument.Config.HLJ_Config;
+import com.hninstrument.Config.HNMBY_Config;
 import com.hninstrument.Config.HNTest_Config;
 import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeBeiDanNing_Config;
@@ -19,10 +21,10 @@ import com.hninstrument.Config.SH_Config;
 import com.hninstrument.Config.SXYZB_Config;
 import com.hninstrument.Config.WZ_Config;
 import com.hninstrument.Config.XA_Config;
+import com.hninstrument.Tools.WZWManager;
 import com.hninstrument.greendao.DaoMaster;
 import com.hninstrument.greendao.DaoSession;
 import com.squareup.leakcanary.LeakCanary;
-import com.ys.myapi.MyManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,9 +49,9 @@ public class AppInit extends Application {
 
     protected static BaseConfig InstrumentConfig;
 
-    protected static MyManager manager;
+    protected static WZWManager manager;
 
-    public static MyManager getMyManager() {
+    public static WZWManager getMyManager() {
         return manager;
     }
 
@@ -88,9 +90,9 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeBeiDanNing_Config();
+        InstrumentConfig = new HeBei_Config();
 
-        manager = MyManager.getInstance(this);
+        manager = WZWManager.getInstance(this);
 
         manager.bindAIDLService(this);
 

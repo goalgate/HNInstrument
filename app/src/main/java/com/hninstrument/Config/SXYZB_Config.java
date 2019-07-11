@@ -16,13 +16,19 @@ public class SXYZB_Config extends BaseConfig{
         public String getPersonInfoPrefix() {
             return "cjy/s/fbcjy_updata?";
         }
-
+//
         @Override
         public String getServerId() {
             return "http://sxsjy.cbsd.com.cn:8999/";
         }
 
-        @Override
+
+//    @Override
+//    public String getServerId() {
+//        return "http://192.168.11.21:6095/";
+//    }
+
+    @Override
         public String getUpDataPrefix() {
             return "cjy/s/fbcjy_updata?";
         }

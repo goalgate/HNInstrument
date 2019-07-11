@@ -8,7 +8,7 @@ public class HeBei_Config extends BaseConfig {
 
     @Override
     public boolean isTemHum() {
-        return false;
+        return true;
     }
 
     @Override
@@ -20,6 +20,11 @@ public class HeBei_Config extends BaseConfig {
     public String getServerId() {
         return "http://211.90.38.12:8081/";
     }
+
+//    @Override
+//    public String getServerId() {
+//        return "http://192.168.11.153:7001/daServer/";
+//    }
 
     @Override
     public String getUpDataPrefix() {
@@ -33,7 +38,9 @@ public class HeBei_Config extends BaseConfig {
 
     @Override
     public int getCheckOnlineTime() {
+//        return 2;
         return 60;
+
     }
 
     @Override

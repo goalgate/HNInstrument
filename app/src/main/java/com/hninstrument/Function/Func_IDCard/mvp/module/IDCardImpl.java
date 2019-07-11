@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.AppInit;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
+import com.hninstrument.Config.SXYZB_Config;
 
 import cbdi.drv.card.CardInfo;
 import cbdi.drv.card.CardInfo1;
@@ -32,19 +33,17 @@ public class IDCardImpl implements IIDCard {
         mylistener = listener;
         try {
             if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3368")) {
-                //cardInfo =new CardInfo("/dev/ttyAMA2",m_onCardState);
                 cardInfo = new CardInfo("/dev/ttyS0", m_onCardState);
+            } else if (AppInit.getInstrumentConfig().getClass().getName().equals(SXYZB_Config.class.getName())) {
+                cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
             } else if (Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) >= 20180903
                     && Integer.parseInt(AppInit.getMyManager().getAndroidDisplay().substring(AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 1, AppInit.getMyManager().getAndroidDisplay().indexOf(".20") + 9)) < 20180918) {
                 cardInfo = new CardInfoRk123x("/dev/ttyS0", m_onCardState);
-                //ToastUtils.showLong("rk123,ttyS0");
-            } else {
-                if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())){
+            }  else {
+                if (AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
                     cardInfo = new CardInfo1("/dev/ttyS1", m_onCardState);
-                    //ToastUtils.showLong("rk,ttyS1");
-                }else{
+                } else {
                     cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
-                    //ToastUtils.showLong("rk123,ttyS1");
                 }
             }
             cardInfo.setDevType("rk3368");
@@ -54,6 +53,7 @@ public class IDCardImpl implements IIDCard {
             } else {
                 cdevfd = -1;
                 Log.e(TAG, "打开身份证读卡器失败");
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,8 +88,8 @@ public class IDCardImpl implements IIDCard {
                     Lg.e("信息提示", "没有照片");
                 }
                 cardInfo.clearIsReadOk();
-            }else if(itype == 20){
-                mylistener.onSetText("SAM:"+cardInfo.getSam());
+            } else if (itype == 20) {
+                mylistener.onSetText("SAM:" + cardInfo.getSam());
             }
 
         }

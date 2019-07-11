@@ -34,6 +34,10 @@
         <activity
             android:name=".CBSD_CommonActivity"
             android:launchMode="singleInstance"></activity>
+
+        <activity android:name=".CBSD_HNMBYActivity"
+            android:launchMode="singleInstance"></activity>
+
         <activity
             android:name=".StartActivityByDN"
             android:launchMode="singleInstance"></activity>

@@ -16,6 +16,7 @@ import com.hninstrument.AppInit;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.EventBus.ADEvent;
@@ -457,6 +458,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     private void alarmRecord() {
         EventBus.getDefault().post(new AlarmEvent());
+//        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())){
         connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
                 config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                     @Override
@@ -467,6 +469,8 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                         }
                     }
                 });
+//        }
+
     }
 
     private void CloseDoorRecord() {

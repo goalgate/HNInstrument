@@ -42,7 +42,8 @@ public class StartActivityByDN extends Activity {
                     int moduleNum = Integer.parseInt(et_module.getText().toString()) * 1000 + 1;
                     config.put("firstStart", false);
                     config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
-                    config.put("devid", new NetInfo().getMacId());
+//                    config.put("devid", new NetInfo().getMacId());
+                    config.put("devid", "140020-125208-228190");
                     config.put("moduleID", moduleNum);
                     ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HeibeiDNActivity");
                     ToastUtils.showLong("网络模块ID设置成功");

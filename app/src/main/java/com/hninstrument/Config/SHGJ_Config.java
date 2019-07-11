@@ -1,6 +1,7 @@
 package com.hninstrument.Config;
 
 public class SHGJ_Config extends BaseConfig{
+    /*上海过检*/
     @Override
     public boolean isFace() {
         return true;
