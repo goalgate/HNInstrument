@@ -458,18 +458,18 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     private void alarmRecord() {
         EventBus.getDefault().post(new AlarmEvent());
-//        if(!AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())){
-        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
-                config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response == null) {
+        if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())) {
+            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())),
+                    config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                        @Override
+                        public void onResponse(String response) {
+                            if (response == null) {
 
-                            mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
+                                mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
+                            }
                         }
-                    }
-                });
-//        }
+                    });
+        }
 
     }
 

@@ -23,7 +23,7 @@ public class HeBei_Config extends BaseConfig {
 
 //    @Override
 //    public String getServerId() {
-//        return "http://192.168.11.153:7001/daServer/";
+//        return "http://192.168.11.131:9001/";
 //    }
 
     @Override

@@ -174,6 +174,7 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
     @Override
     public void onResume() {
         super.onResume();
+        alarmPic = false;
         tips.setText(config.getString("devid") + "号机器等待用户操作");
     }
 
@@ -313,27 +314,35 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
         }
 
     }
+
     ByteArrayOutputStream baos;
+    Disposable disposable_alarm;
     @Override
     public void onGetPhoto(Bitmap bmp) {
         try {
             photo = compressImage(bmp);
-//            if (alarmPic) {
-//                alarmPic = false;
-//                baos = new ByteArrayOutputStream();
-//                photo.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-//                connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"  + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())),
-//                        config.getString("ServerId"),baos.toByteArray(), new ServerConnectionUtil.Callback() {
-//                            @Override
-//                            public void onResponse(String response) {
-//                                if (response == null) {
-//                                    mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())), baos.toByteArray(), 0));
-//                                }
-//                            }
-//                        });
-//                baos.close();
-//                return;
-//            }
+            if (alarmPic) {
+                disposable_alarm = Observable.timer(10,TimeUnit.MINUTES)
+                        .subscribe(new Consumer<Long>() {
+                            @Override
+                            public void accept(Long aLong) throws Exception {
+                                alarmPic = false;
+                            }
+                        });
+                baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=alarm&alarmType=1"  + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())),
+                        config.getString("ServerId"),baos.toByteArray(), new ServerConnectionUtil.Callback() {
+                            @Override
+                            public void onResponse(String response) {
+                                if (response == null) {
+                                    mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatterUri.format(new Date(System.currentTimeMillis())), baos.toByteArray(), 0));
+                                }
+                            }
+                        });
+                baos.close();
+                return;
+            }
             if (persontype.equals("1")) {
                 // if (!persontype.equals("5")) {
                 if (getState(LockingState.class) || getState(OneUnlockState.class)) {
@@ -406,6 +415,10 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
             captured1.setImageBitmap(null);
             EventBus.getDefault().post(new PassEvent());
             iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
+            if(disposable_alarm!= null){
+                disposable_alarm.dispose();
+            }
+            alarmPic = false;
             tips.setText(cardInfo.name() + "刷卡成功");
             MediaHelper.play(MediaHelper.Text.second_opt);
             noface_openDoorUpData();
@@ -451,6 +464,10 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
 //                                                });
 //                                    }
                                     iv_lock.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_lock_unlock));
+                                    if(disposable_alarm!= null){
+                                        disposable_alarm.dispose();
+                                    }
+                                    alarmPic = false;
                                     tips.setText(cardInfo.name() + "刷卡成功,相似度为" + person2.getFaceReconition());
                                     MediaHelper.play(MediaHelper.Text.second_opt);
                                     face_openDoorUpData();
@@ -491,7 +508,10 @@ public class CBSD_HeBeiActivity extends CBSD_FunctionActivity {
         Intent checked = new Intent(this, TimeCheckReceiver.class);
         checked.setAction("checked");
         sendBroadcast(checked);
-
+        if(disposable_alarm!= null){
+            disposable_alarm.dispose();
+        }
+        alarmPic = false;
         if (checkChange != null && !checkChange.isDisposed()) {
             connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=checkRecord" + "&daid=" + config.getString("devid") + "&checkType=" + type,
                     config.getString("ServerId"),

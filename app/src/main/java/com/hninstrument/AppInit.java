@@ -14,6 +14,7 @@ import com.hninstrument.Config.HNTest_Config;
 import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
+import com.hninstrument.Config.HeNanYZB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.NMGYZB_Config;
 import com.hninstrument.Config.SHDMJ_config;
@@ -90,7 +91,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeBei_Config();
+        InstrumentConfig = new HeNanYZB_Config();
 
         manager = WZWManager.getInstance(this);
 

@@ -1,34 +1,39 @@
 package com.hninstrument.Config;
 
-public class HNMBY_Config extends BaseConfig {
-    @Override
-    public boolean isFace() {
-        return false;
-    }
+/**
+ * Created by zbsz on 2017/12/19.
+ */
+
+public class HeNanYZB_Config extends BaseConfig {
 
     @Override
-    public boolean isTemHum() {
+    public boolean isFace() {
         return true;
     }
 
     @Override
+    public boolean isTemHum() {
+        return false;
+    }
+
+    @Override
     public String getPersonInfoPrefix() {
-        return null;
+        return  "cjy/s/fbcjy_updata?";
     }
 
     @Override
     public String getServerId() {
-        return "http://192.168.11.125:8103/";
+        return "http://hnyzb.wxhxp.cn:1093/";
     }
 
     @Override
     public String getUpDataPrefix() {
-        return null;
+        return  "cjy/s/fbcjy_updata?";
     }
 
     @Override
     public String getDev_prefix() {
-        return "800100";
+        return "800200";
     }
 
     @Override
@@ -38,22 +43,22 @@ public class HNMBY_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-DA-01";
+        return "CBDI-ID";
     }
 
     @Override
     public String getName() {
-        return "防爆采集器";
+        return "数据采集器";
     }
 
     @Override
     public String getProject() {
-        return "HNMBY";
+        return "HNYZB";
     }
 
     @Override
     public String getPower() {
-        return "12-18V 2A";
+        return "12V 2A";
     }
 
     @Override
@@ -83,6 +88,6 @@ public class HNMBY_Config extends BaseConfig {
 
     @Override
     public boolean doubleCheck() {
-        return true;
+        return false;
     }
 }

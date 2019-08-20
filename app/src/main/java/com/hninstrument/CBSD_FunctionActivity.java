@@ -41,12 +41,15 @@ import com.hninstrument.Tools.ServerConnectionUtil;
 import com.hninstrument.greendao.DaoSession;
 import com.hninstrument.greendao.ReUploadBeanDao;
 import com.trello.rxlifecycle2.components.RxActivity;
+
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+
 import butterknife.BindView;
 import butterknife.OnClick;
 import cbdi.drv.card.ICardInfo;
@@ -130,10 +133,10 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
 
     @OnClick(R.id.iv_lock)
     public void showMessage() {
-        if(AppInit.getInstrumentConfig().getClass().getName().equals(SHDMJ_config.class.getName())
-                &&Lock.getInstance().getLockState().getClass().getName().equals(State_Unlock.class.getName())){
+        if (AppInit.getInstrumentConfig().getClass().getName().equals(SHDMJ_config.class.getName())
+                && Lock.getInstance().getLockState().getClass().getName().equals(State_Unlock.class.getName())) {
             SwitchPresenter.getInstance().doorOpen();
-        }else{
+        } else {
             alert_message.showMessage();
         }
     }
@@ -141,7 +144,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Lg.e("生命周期","onCreate");
+        Lg.e("生命周期", "onCreate");
         BarUtils.hideStatusBar(this);
         idp.idCardOpen();
         pp.initCamera();
@@ -166,7 +169,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onStart() {
         super.onStart();
-        Lg.e("生命周期","onStart");
+        Lg.e("生命周期", "onStart");
         pp.setParameter(surfaceView.getHolder());
     }
 
@@ -174,7 +177,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onRestart() {
         super.onRestart();
-        Lg.e("生命周期","onRestart");
+        Lg.e("生命周期", "onRestart");
         if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
             pp.initCamera();
         }
@@ -185,7 +188,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     public void onResume() {
         super.onResume();
-        Lg.e("生命周期","onResume");
+        Lg.e("生命周期", "onResume");
         idp.IDCardPresenterSetView(this);
         idp.readCard();
         pp.PhotoPresenterSetView(this);
@@ -196,14 +199,14 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     protected void onStop() {
         super.onStop();
-        Lg.e("生命周期","onStop");
+        Lg.e("生命周期", "onStop");
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Lg.e("生命周期","onPause");
+        Lg.e("生命周期", "onPause");
         idp.IDCardPresenterSetView(null);
         idp.stopReadCard();
         pp.PhotoPresenterSetView(null);
@@ -212,7 +215,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Lg.e("生命周期","onDestroy");
+        Lg.e("生命周期", "onDestroy");
         idp.idCardClose();
         if (!AppInit.getInstrumentConfig().getClass().getName().equals(HeBeiDanNing_Config.class.getName())) {
             AppInit.getMyManager().unBindAIDLService(AppInit.getContext());
@@ -224,7 +227,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
 
     @Override
     public void onSetText(String Msg) {
-        if(alert_message.Showing()){
+        if (alert_message.Showing()) {
             ToastUtils.showLong(Msg);
         }
     }
@@ -241,7 +244,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                         pp.setDisplay(surfaceView.getHolder());
                         idp.readCard();
                         if (response != null) {
-                            if(AppInit.getInstrumentConfig().doubleCheck()){
+                            if (AppInit.getInstrumentConfig().doubleCheck()) {
                                 if (response.startsWith("true") && (int) Double.parseDouble(response.substring(5, response.length())) < 85) {//这里要改
                                     connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                             config.getString("ServerId"),
@@ -261,7 +264,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
                                     tips.setText("上传失败，请注意是否单人双卡操作");
                                     MediaHelper.play(MediaHelper.Text.err_omtk);
                                 }
-                            }else{
+                            } else {
                                 connectionUtil.post(config.getString("ServerId") + ins_type.getUpDataPrefix() + "dataType=openDoor" + "&daid=" + config.getString("devid") + "&faceRecognition1=" + (person1.getFaceReconition() + 100) + "&faceRecognition2=" + (person2.getFaceReconition() + 100) + "&faceRecognition3=" + ((int) Double.parseDouble(response.substring(5, response.length())) + 100),
                                         config.getString("ServerId"),
                                         new UpOpenDoorData().toOpenDoorData((byte) 0x01, person1.getCardId(), person1.getName(), person1.getPhoto(), person2.getCardId(), person2.getName(), photo).toByteArray(),
@@ -322,14 +325,16 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         }
     }
 
-    Bitmap compressImage(Bitmap image) {
+    public Bitmap compressImage(Bitmap image) {
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 100, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
-        int options = 100;
-        while (baos.toByteArray().length / 1024 > 100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
+        int options = 70;
+
+        image.compress(Bitmap.CompressFormat.JPEG, options, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
+        while (baos.toByteArray().length / 1024>100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
             baos.reset();//重置baos即清空baos
-            image.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
             options -= 10;//每次都减少10
+            image.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
         }
         ByteArrayInputStream isBm = new ByteArrayInputStream(baos.toByteArray());//把压缩后的数据baos存放到ByteArrayInputStream中
         Bitmap bitmap = BitmapFactory.decodeStream(isBm, null, null);//把ByteArrayInputStream数据生成图片
@@ -350,18 +355,22 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         tv_temperature.setText(event.getTem() + "℃");
         tv_humidity.setText(event.getHum() + "%");
     }
-//    boolean alarmPic = false;
+
+    boolean alarmPic = false;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onGetAlarmEvent(AlarmEvent event) {
         tips.setText("开门报警已被触发");
         MediaHelper.play(MediaHelper.Text.alarm);
-//        if(AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())){
-//            alarmPic=true;
-//            takepicture();
-//        }
+        if (AppInit.getInstrumentConfig().getClass().getName().equals(HeBei_Config.class.getName())) {
+            if (!alarmPic) {
+                alarmPic = true;
+                takepicture();
+            }
+        }
     }
 
-    protected void takepicture(){
+    protected void takepicture() {
         if (!ins_type.isGetOneShot()) {
             pp.capture();
         } else {
