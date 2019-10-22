@@ -1,9 +1,16 @@
 package com.hninstrument;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import com.blankj.utilcode.util.ActivityUtils;
@@ -14,6 +21,7 @@ import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
+import com.hninstrument.HeibeiDNHelper.MyAccessibilityService;
 import com.hninstrument.Tools.AssetsUtils;
 
 import java.io.File;
@@ -40,6 +48,8 @@ public class StartActivity extends Activity {
 
     Pattern pattern = Pattern.compile(regEx);
 
+    private static final String TAG = StartActivity.class.getSimpleName() + ">>>>>";
+
 
     @BindView(R.id.dev_prefix)
     TextView dev_prefix;
@@ -47,8 +57,24 @@ public class StartActivity extends Activity {
     @BindView(R.id.devid_input)
     EditText dev_suffix;
 
+    @BindView(R.id.btn_chooseCam)
+    Button btn_chooseCam;
+
+    @OnClick(R.id.btn_chooseCam) void chooseCam(){
+        if(config.getBoolean("chooseCam",true)){
+            config.put("chooseCam",false);
+        }
+    }
+
     @OnClick(R.id.next)
     void next() {
+        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+            if(!isAccessibilitySettingsOn(this)){
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivityForResult(intent, 1);
+                return;
+            }
+        }
         if (pattern.matcher(dev_suffix.getText().toString()).matches()) {
             config.put("firstStart", false);
             config.put("ServerId", AppInit.getInstrumentConfig().getServerId());
@@ -83,6 +109,44 @@ public class StartActivity extends Activity {
         setContentView(R.layout.device_form);
         ButterKnife.bind(this);
         dev_prefix.setText(AppInit.getInstrumentConfig().getDev_prefix());
+        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+            btn_chooseCam.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private boolean isAccessibilitySettingsOn(Context mContext) {
+        int accessibilityEnabled = 0;
+        // MyAccessibilityService为对应的服务
+        final String service = getPackageName() + "/" + MyAccessibilityService.class.getCanonicalName();
+        Log.e(TAG, "service:" + service);
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(mContext.getApplicationContext().getContentResolver(),
+                    Settings.Secure.ACCESSIBILITY_ENABLED);
+            Log.e(TAG, "accessibilityEnabled = " + accessibilityEnabled);
+        } catch (Settings.SettingNotFoundException e) {
+            Log.e(TAG, "Error finding setting, default accessibility to not found: " + e.getMessage());
+        }
+        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
+
+        if (accessibilityEnabled == 1) {
+            Log.e(TAG, "***ACCESSIBILITY IS ENABLED***");
+            String settingValue = Settings.Secure.getString(mContext.getApplicationContext().getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null) {
+                mStringColonSplitter.setString(settingValue);
+                while (mStringColonSplitter.hasNext()) {
+                    String accessibilityService = mStringColonSplitter.next();
+                    Log.e(TAG, "accessibilityService :: " + accessibilityService + " " + service);
+                    if (accessibilityService.equalsIgnoreCase(service)) {
+                        Log.e(TAG, "We've found the correct setting - accessibility is switched on!");
+                        return true;
+                    }
+                }
+            }
+        } else {
+            Log.e(TAG, "***ACCESSIBILITY IS DISABLED***");
+        }
+        return false;
     }
 
    /* String SDCardPath = Environment.getExternalStorageDirectory() +"/";

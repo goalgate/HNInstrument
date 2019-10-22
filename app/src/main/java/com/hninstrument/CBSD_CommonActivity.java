@@ -9,6 +9,7 @@ import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -135,7 +136,9 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            NetworkUtils.openWirelessSettings();
+                            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);
+//                            NetworkUtils.openWirelessSettings();
                         }
                     }
                 }
@@ -435,10 +438,10 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
                                 } catch (Exception e) {
-                                    tips.setText("人脸比对失败");
+                                    ToastUtils.showLong(e.toString());
+                                    tips.setText("人脸比对失败  "+response);
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
-
                                 }
 
                             }

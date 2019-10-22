@@ -565,7 +565,7 @@ public class CBSD_HeibeiDNActivity extends CBSD_FunctionActivity{
     private InstalledReceiver mInstalledReceiver;
     private DownLoadService mDownLoadService;
 
-    public void AutoUpdatePrepare(){
+    private void AutoUpdatePrepare(){
         Intent intent = new Intent(CBSD_HeibeiDNActivity.this, DownLoadService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
 

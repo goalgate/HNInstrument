@@ -19,9 +19,9 @@ import cbdi.log.Lg;
 
 public class SwitchImpl extends SerialPortCom implements ISwitching {
 
-    public enum Hex {
-        H1, H2, H3, H4, H5, H6, H7, H8, H9, HA, HB, HC, HD, HE, HF
-    }
+//    public enum Hex {
+//        H1, H2, H3, H4, H5, H6, H7, H8, H9, HA, HB, HC, HD, HE, HF
+//    }
 
     private byte[] buf_ = new byte[2048];
     private int bufCount = 0;
@@ -147,21 +147,21 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
             case HA:
                 dt_buzz_[5] = 0x0A;
                 break;
-            case HB:
-                dt_buzz_[5] = 0x0B;
-                break;
-            case HC:
-                dt_buzz_[5] = 0x0C;
-                break;
-            case HD:
-                dt_buzz_[5] = 0x0D;
-                break;
-            case HE:
-                dt_buzz_[5] = 0x0E;
-                break;
-            case HF:
-                dt_buzz_[5] = 0x0F;
-                break;
+//            case HB:
+//                dt_buzz_[5] = 0x0B;
+//                break;
+//            case HC:
+//                dt_buzz_[5] = 0x0C;
+//                break;
+//            case HD:
+//                dt_buzz_[5] = 0x0D;
+//                break;
+//            case HE:
+//                dt_buzz_[5] = 0x0E;
+//                break;
+//            case HF:
+//                dt_buzz_[5] = 0x0F;
+//                break;
             default:
                 break;
         }
@@ -229,6 +229,41 @@ public class SwitchImpl extends SerialPortCom implements ISwitching {
         } catch (Exception ex) {
             Lg.e("M121_sendData", ex.toString());
         }
+    }
+
+    @Override
+    public void onD5Relay(Hex hex, boolean status) {
+
+    }
+
+    @Override
+    public void onWhiteLighrOff() {
+
+    }
+
+    @Override
+    public void onWhiteLighrOn() {
+
+    }
+
+    @Override
+    public void on12VRelay(Hex hex, boolean status) {
+
+    }
+
+    @Override
+    public void onClose() {
+
+    }
+
+    @Override
+    public void onD10Relay(Hex hex, boolean status) {
+
+    }
+
+    @Override
+    public void onRelay(Hex hex, boolean status) {
+
     }
 
     Handler mhandler = new Handler() {

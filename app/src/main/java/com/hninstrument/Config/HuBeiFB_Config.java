@@ -5,6 +5,11 @@ package com.hninstrument.Config;
  */
 
 public class HuBeiFB_Config extends BaseConfig {
+
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
     @Override
     public boolean isTemHum() {
         return true;

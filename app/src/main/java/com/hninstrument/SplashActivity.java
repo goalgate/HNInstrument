@@ -50,6 +50,9 @@ public class SplashActivity extends Activity {
             if("http://113.140.1.136:8601/".equals(SP_Config.getString("ServerId"))){
                 SP_Config.put("ServerId","http://211.90.38.12:8081/");
             }
+            if("http://hnyzb.wxhxp.cn:1093/cjy/s/".equals(SP_Config.getString("ServerId"))){
+                SP_Config.put("ServerId","http://hnyzb.wxhxp.cn:1093/");
+            }
             if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");
             }else if(AppInit.getInstrumentConfig().getClass().getName().equals(SH_Config.class.getName())){

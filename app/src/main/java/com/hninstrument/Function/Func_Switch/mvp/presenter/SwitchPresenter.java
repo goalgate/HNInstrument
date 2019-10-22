@@ -1,6 +1,8 @@
 package com.hninstrument.Function.Func_Switch.mvp.presenter;
+import com.hninstrument.AppInit;
 import com.hninstrument.Function.Func_Switch.mvp.module.ISwitching;
 import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl;
+import com.hninstrument.Function.Func_Switch.mvp.module.SwitchImpl4;
 import com.hninstrument.Function.Func_Switch.mvp.view.ISwitchView;
 
 /**
@@ -11,7 +13,17 @@ public class SwitchPresenter {
 
     private ISwitchView view;
 
-    private SwitchPresenter(){}
+    ISwitching switchingModule ;
+
+
+    private SwitchPresenter(){
+        if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")||AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
+            this.switchingModule = new SwitchImpl4();
+        }else {
+            this.switchingModule = new SwitchImpl();
+        }
+
+    }
 
     private static SwitchPresenter instance = null;
 
@@ -25,7 +37,6 @@ public class SwitchPresenter {
         this.view = view;
     }
 
-    ISwitching switchingModule = new SwitchImpl();
 
     public void switch_Open(){
         switchingModule.onOpen(new ISwitching.ISwitchingListener() {

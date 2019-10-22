@@ -17,6 +17,7 @@ import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.HeBei_Config;
+import com.hninstrument.Config.LN_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.EventBus.ADEvent;
@@ -289,16 +290,31 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
 
     private void autoUpdate() {
-        connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-            @Override
-            public void onResponse(String response) {
-                if (response != null) {
-                    if (response.equals("true")) {
-                        AppUtils.installApp(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Download" + File.separator + "app-release.apk"), "application/vnd.android.package-archive");
+//        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+        if(AppInit.getInstrumentConfig().getClass().getName().equals(LN_Config.class.getName())){
+            connectionUtil.download("http://124.172.232.89:8050/daServer/updateEWC.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                @Override
+                public void onResponse(String response) {
+                    if (response != null) {
+                        if (response.equals("true")) {
+                            AppUtils.installApp(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Download" + File.separator + "app-release.apk"), "application/vnd.android.package-archive");
+                        }
                     }
                 }
-            }
-        });
+            });
+        }else{
+            connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                @Override
+                public void onResponse(String response) {
+                    if (response != null) {
+                        if (response.equals("true")) {
+                            AppUtils.installApp(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "Download" + File.separator + "app-release.apk"), "application/vnd.android.package-archive");
+                        }
+                    }
+                }
+            });
+        }
+
     }
 
     private void updata() {
@@ -329,7 +345,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                                                         ToastUtils.showLong("没有相应仓管员信息");
                                                     }
                                                 } else {
-                                                    ToastUtils.showLong("连接服务器错误");
+//                                                    ToastUtils.showLong("连接服务器错误");
                                                 }
 
                                             }
@@ -338,7 +354,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                                 ToastUtils.showLong("没有相应巡检员信息");
                             }
                         } else {
-                            ToastUtils.showLong("连接服务器错误");
+//                            ToastUtils.showLong("连接服务器错误");
                         }
                     }
                 });
@@ -464,7 +480,6 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                         @Override
                         public void onResponse(String response) {
                             if (response == null) {
-
                                 mdaoSession.insert(new ReUploadBean(null, "dataType=alarm&alarmType=1" + "&time=" + formatter.format(new Date(System.currentTimeMillis())), null, 0));
                             }
                         }

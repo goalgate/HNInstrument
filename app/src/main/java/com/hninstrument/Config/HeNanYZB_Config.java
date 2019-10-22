@@ -7,6 +7,11 @@ package com.hninstrument.Config;
 public class HeNanYZB_Config extends BaseConfig {
 
     @Override
+    public String hardware() {
+        return "rk3128";
+    }
+
+    @Override
     public boolean isFace() {
         return true;
     }

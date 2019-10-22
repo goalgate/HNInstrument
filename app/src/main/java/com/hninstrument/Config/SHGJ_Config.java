@@ -1,6 +1,11 @@
 package com.hninstrument.Config;
 
 public class SHGJ_Config extends BaseConfig{
+
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
     /*上海过检*/
     @Override
     public boolean isFace() {

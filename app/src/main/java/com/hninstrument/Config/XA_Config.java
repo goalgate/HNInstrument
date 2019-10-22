@@ -7,6 +7,11 @@ package com.hninstrument.Config;
 public class XA_Config extends BaseConfig {
 
     @Override
+    public String hardware() {
+        return "rk3128";
+    }
+
+    @Override
     public boolean isFace() {
         return false;
     }
@@ -31,14 +36,14 @@ public class XA_Config extends BaseConfig {
         return "da_gzmb_updata?";
     }
 
-//    @Override
-//    public String getDev_prefix() {
-//        return "800100";
-//    }
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
+//    @Override
+//    public String getDev_prefix() {
+//        return "800200";
+//    }
 
     @Override
     public int getCheckOnlineTime() {

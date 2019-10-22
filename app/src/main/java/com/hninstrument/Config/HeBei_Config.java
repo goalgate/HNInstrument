@@ -1,6 +1,12 @@
 package com.hninstrument.Config;
 
 public class HeBei_Config extends BaseConfig {
+
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
+
     @Override
     public boolean isFace() {
         return true;
@@ -13,7 +19,7 @@ public class HeBei_Config extends BaseConfig {
 
     @Override
     public String getPersonInfoPrefix() {
-        return "da_gzmb_persionInfo?";
+            return "da_gzmb_persionInfo?";
     }
 
     @Override

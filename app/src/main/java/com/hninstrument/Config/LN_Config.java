@@ -1,51 +1,39 @@
 package com.hninstrument.Config;
 
-public class    HNTest_Config extends BaseConfig {
+public class LN_Config extends BaseConfig {
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
+
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isTemHum() {
-        return false;
+        return false ;
     }
-
-
-//    @Override
-//    public String getPersonInfoPrefix() {
-//        return "da_gzmb_persionInfo?";
-//    }
-//
-//    @Override
-//    public String getServerId() {
-//        return "http://124.172.232.87:8802/";
-//    }
-//
-//    @Override
-//    public String getUpDataPrefix() {
-//        return "da_gzmb_updata?";
-//    }
-
 
     @Override
     public String getPersonInfoPrefix() {
-        return "cjy/s/fbcjy_updata?";
+        return "ewln_persionInfo.do?";
     }
 
     @Override
     public String getServerId() {
-        return "http://hnyzb.wxhxp.cn:1093/";
+        return "http://124.172.232.89:8050/daServer/";
     }
 
     @Override
     public String getUpDataPrefix() {
-        return "cjy/s/fbcjy_updata?";
+        return "ewln_updata.do?";
     }
 
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
 
     @Override
@@ -55,22 +43,22 @@ public class    HNTest_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID";
+        return "CBDI-DA-01";
     }
 
     @Override
     public String getName() {
-        return "数据采集器";
+        return "防爆采集器";
     }
 
     @Override
     public String getProject() {
-        return "HNJD";
+        return "LNFB";
     }
 
     @Override
     public String getPower() {
-        return "12V 2A";
+        return "12-18V 2A";
     }
 
     @Override
@@ -102,4 +90,5 @@ public class    HNTest_Config extends BaseConfig {
     public boolean doubleCheck() {
         return true;
     }
+
 }

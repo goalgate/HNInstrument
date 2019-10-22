@@ -3,13 +3,32 @@ apply plugin: 'org.greenrobot.greendao'
 android {
     compileSdkVersion 25
     buildToolsVersion '28.0.2'
+    signingConfigs {
+        release {
+            storeFile file("../Signature/wzwkey.jks")
+            storePassword '159357'
+            keyAlias 'mykey'
+            keyPassword '159357'
+        }
+        debug {
+            storeFile file("../Signature/wzwkey.jks")
+            storePassword '159357'
+            keyAlias 'mykey'
+            keyPassword '159357'
+        }
+    }
     defaultConfig {
         applicationId "com.hninstrument"
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 22
         versionCode 1
-        versionName "2.2"
+        versionName "2.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
     }
     buildTypes {
         release {

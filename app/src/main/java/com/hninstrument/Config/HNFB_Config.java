@@ -1,15 +1,15 @@
 package com.hninstrument.Config;
 
-public class SXYZB_Config extends BaseConfig {
+public class HNFB_Config extends BaseConfig {
 
     @Override
     public String hardware() {
-        return "rk3128";
+        return "rk3288";
     }
 
     @Override
     public boolean isFace() {
-        return false;
+        return true;
     }
 
     @Override
@@ -17,22 +17,32 @@ public class SXYZB_Config extends BaseConfig {
         return false;
     }
 
+
+//    @Override
+//    public String getPersonInfoPrefix() {
+//        return "da_gzmb_persionInfo?";
+//    }
+//
+//    @Override
+//    public String getServerId() {
+//        return "http://124.172.232.87:8802/";
+//    }
+//
+//    @Override
+//    public String getUpDataPrefix() {
+//        return "da_gzmb_updata?";
+//    }
+
+
     @Override
     public String getPersonInfoPrefix() {
         return "cjy/s/fbcjy_updata?";
     }
 
-    //
     @Override
     public String getServerId() {
-        return "http://sxsjy.cbsd.com.cn:8999/";
+        return "http://hnyzb.wxhxp.cn:1093/";
     }
-
-
-//    @Override
-//    public String getServerId() {
-//        return "http://192.168.11.21:6095/";
-//    }
 
     @Override
     public String getUpDataPrefix() {
@@ -41,9 +51,8 @@ public class SXYZB_Config extends BaseConfig {
 
     @Override
     public String getDev_prefix() {
-        return "800200";
+        return "800100";
     }
-
 
     @Override
     public int getCheckOnlineTime() {
@@ -52,21 +61,17 @@ public class SXYZB_Config extends BaseConfig {
 
     @Override
     public String getModel() {
-        return "CBDI-ID";
+        return "CBDI-DA-01";
     }
 
-    //    @Override
-//    public String getModel() {
-//        return "CBDI-ID";
-//    }
     @Override
     public String getName() {
-        return "库房采集器";
+        return "防爆数据采集器";
     }
 
     @Override
     public String getProject() {
-        return "SXYZB";
+        return "HeNanFB";
     }
 
     @Override
@@ -103,6 +108,4 @@ public class SXYZB_Config extends BaseConfig {
     public boolean doubleCheck() {
         return true;
     }
-
-
 }

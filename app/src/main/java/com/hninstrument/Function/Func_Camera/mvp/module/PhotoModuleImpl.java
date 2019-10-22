@@ -11,6 +11,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.Toast;
+
+import com.blankj.utilcode.util.SPUtils;
 import com.hninstrument.AppInit;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -105,15 +107,26 @@ public class PhotoModuleImpl implements IPhotoModule, Camera.PreviewCallback {
         }
     };
 
+
+    private SPUtils config = SPUtils.getInstance("config");
+
     @Override
     public void initCamera() {
-        safeCameraOpen(0);
+        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+            if(config.getBoolean("chooseCam",true)){
+                safeCameraOpen(0);
+            }else{
+                safeCameraOpen(1);
+            }
+        }else {
+            safeCameraOpen(0);
+        }
     }
 
     private void safeCameraOpen(int id) {
         try {
             releaseCameraAndPreview();
-            camera = Camera.open();
+            camera = Camera.open(id);
         } catch (Exception e) {
             Toast.makeText(AppInit.getContext(), "无法获取摄像头权限", Toast.LENGTH_LONG);
             e.printStackTrace();

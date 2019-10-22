@@ -6,6 +6,8 @@ package com.hninstrument.Config;
 
 public abstract class BaseConfig {
 
+    public abstract String hardware();
+
     public abstract boolean isTemHum();
 
     public abstract boolean isFace();

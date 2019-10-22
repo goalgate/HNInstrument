@@ -1,5 +1,7 @@
 package com.hninstrument.Tools;
 
+import com.hninstrument.AppInit;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -45,7 +47,11 @@ public class NetInfo {
     //取macID
     public String getMacId()
     {
-        return macToId(getMac());
+        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")||AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
+            return macToId(getWifiMac());
+        }else{
+            return macToId(getMac());
+        }
     }
 
 

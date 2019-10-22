@@ -1,6 +1,10 @@
 package com.hninstrument.Config;
 
 public class WZ_Config extends BaseConfig {
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
 
     @Override
     public boolean isFace() {
@@ -19,7 +23,7 @@ public class WZ_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://119.29.111.172:7012/";
+            return "http://119.29.111.172:7012/";
     }
 
     @Override
@@ -49,7 +53,7 @@ public class WZ_Config extends BaseConfig {
 
     @Override
     public String getProject() {
-        return "SHFB";
+        return "WZFB";
     }
 
     @Override

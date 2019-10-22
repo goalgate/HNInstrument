@@ -1,8 +1,15 @@
 package com.hninstrument;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Path;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceView;
@@ -10,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -32,12 +40,16 @@ import com.hninstrument.Function.Func_Camera.mvp.view.IPhotoView;
 import com.hninstrument.Function.Func_IDCard.mvp.presenter.IDCardPresenter;
 import com.hninstrument.Function.Func_IDCard.mvp.view.IIDCardView;
 import com.hninstrument.Function.Func_Switch.mvp.presenter.SwitchPresenter;
+import com.hninstrument.HeibeiDNHelper.DownLoadService;
+import com.hninstrument.HeibeiDNHelper.InstalledReceiver;
 import com.hninstrument.State.LockState.Lock;
 import com.hninstrument.State.LockState.State_Unlock;
 import com.hninstrument.State.OperationState.LockingState;
 import com.hninstrument.State.OperationState.Operation;
 import com.hninstrument.Tools.MediaHelper;
+import com.hninstrument.Tools.SafeCheck;
 import com.hninstrument.Tools.ServerConnectionUtil;
+import com.hninstrument.Tools.WZWManager;
 import com.hninstrument.greendao.DaoSession;
 import com.hninstrument.greendao.ReUploadBeanDao;
 import com.trello.rxlifecycle2.components.RxActivity;
@@ -47,14 +59,19 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import cbdi.drv.card.ICardInfo;
 import cbdi.log.Lg;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 public abstract class CBSD_FunctionActivity extends RxActivity implements IPhotoView, IIDCardView, AddPersonWindow.OptionTypeListener {
     public IDCardPresenter idp = IDCardPresenter.getInstance();
@@ -146,6 +163,9 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         super.onCreate(savedInstanceState);
         Lg.e("生命周期", "onCreate");
         BarUtils.hideStatusBar(this);
+        if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
+            AutoUpdatePrepare();
+        }
         idp.idCardOpen();
         pp.initCamera();
         alert_message.messageInit();
@@ -331,7 +351,7 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         int options = 70;
 
         image.compress(Bitmap.CompressFormat.JPEG, options, baos);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
-        while (baos.toByteArray().length / 1024>100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
+        while (baos.toByteArray().length / 1024 > 100) { //循环判断如果压缩后图片是否大于100kb,大于继续压缩
             baos.reset();//重置baos即清空baos
             options -= 10;//每次都减少10
             image.compress(Bitmap.CompressFormat.JPEG, options, baos);//这里压缩options%，把压缩后的数据存放到baos中
@@ -376,5 +396,48 @@ public abstract class CBSD_FunctionActivity extends RxActivity implements IPhoto
         } else {
             pp.getOneShut();
         }
+    }
+
+    private InstalledReceiver mInstalledReceiver;
+    private DownLoadService mDownLoadService;
+
+    private void AutoUpdatePrepare(){
+        Intent intent = new Intent(CBSD_FunctionActivity.this, DownLoadService.class);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+
+        /**
+         * 注册安装程序广播(暂时发现在androidManifest.xml中注册，nexus5 Android7.1接收不到广播）
+         */
+        mInstalledReceiver = new InstalledReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.intent.action.PACKAGE_ADDED");
+        filter.addAction("android.intent.action.PACKAGE_REMOVED");
+        filter.addDataScheme("package");
+        this.registerReceiver(mInstalledReceiver, filter);
+        startDownload();
+    }
+
+    ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mDownLoadService = ((DownLoadService.MyBinder) service).getServices();
+            //mDownLoadService.registerReceiver(CBSD_HeibeiDNActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    private void startDownload() {
+        final SafeCheck safeCheck = new SafeCheck();
+        safeCheck.setURL(config.getString("ServerId"));
+        Observable.timer(5,TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Long>() {
+            @Override
+            public void accept(Long aLong) throws Exception {
+                mDownLoadService.startDownload();
+            }
+        });
     }
 }

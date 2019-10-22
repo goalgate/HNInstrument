@@ -1,6 +1,11 @@
 package com.hninstrument.Config;
 
 public class SHDMJ_config extends BaseConfig {
+
+    @Override
+    public String hardware() {
+        return "rk3128";
+    }
 //    上海带门禁
     @Override
     public boolean isFace() {
