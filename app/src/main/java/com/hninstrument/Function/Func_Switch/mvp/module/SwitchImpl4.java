@@ -268,7 +268,8 @@ public class SwitchImpl4 implements ISwitching {
     public void onBuzz(Hex hex) {
 //        sendData(dt_buzz2);
         if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3368")
-                && AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")) {
+                || AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")
+                || AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")) {
             sendData(dt_buzz2);
         } else {
             sendData(adjust(dt_buzz_, hex));
