@@ -12,6 +12,7 @@ import com.hninstrument.Config.HNFB_Config;
 import com.hninstrument.Config.HeNanYZB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.LN_Config;
+import com.hninstrument.Config.XAYZB_Config;
 import com.hninstrument.Config.XA_Config;
 import com.hninstrument.Tools.WZWManager;
 import com.hninstrument.greendao.DaoMaster;
@@ -81,7 +82,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new HeNanYZB_Config();
+        InstrumentConfig = new GDMB_Config();
 
         manager = WZWManager.getInstance(this);
 

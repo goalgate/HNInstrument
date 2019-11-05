@@ -8,6 +8,7 @@ import android.gesture.Prediction;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceView;
@@ -222,8 +223,8 @@ public class MainActivity extends FunctionActivity implements AddPersonWindow.Op
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            NetworkUtils.openWirelessSettings();
-                        }
+                            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);                        }
                     }
                 }
             }

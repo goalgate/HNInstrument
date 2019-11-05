@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -141,8 +142,8 @@ public class CBSD_HeibeiDNActivity extends CBSD_FunctionActivity{
                     // 匹配的手势
                     if (prediction.score > 1.0) { // 越匹配score的值越大，最大为10
                         if (prediction.name.equals("setting")) {
-                            NetworkUtils.openWirelessSettings();
-                        }
+                            Intent intent = new Intent(Settings.ACTION_SETTINGS);
+                            startActivity(intent);                        }
                     }
                 }
             }

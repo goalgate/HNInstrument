@@ -85,7 +85,11 @@ public class Alert_Message {
     public void showMessage() {
         msg_daid.setText(SPUtils.getInstance("config").getString("devid"));
         msg_ip.setText(NetworkUtils.getIPAddress(true));
-        msg_mac.setText(new NetInfo().getMac());
+        if(AppInit.getMyManager().getAndroidDisplay().startsWith("x3128")){
+            msg_mac.setText(new NetInfo().getWifiMac());
+        }else{
+            msg_mac.setText(new NetInfo().getMac());
+        }
         msg_software.setText(AppUtils.getAppVersionName());
         if ((DHCP.equals(AppInit.getMyManager().getEthMode()))) {
             msg_ipmode.setText("当前以太网为动态IP获取模式");

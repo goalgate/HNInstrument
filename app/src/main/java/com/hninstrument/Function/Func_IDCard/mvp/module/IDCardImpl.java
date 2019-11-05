@@ -17,6 +17,7 @@ import cbdi.drv.card.CardInfoRk123x;
 import cbdi.drv.card.ICardInfo;
 import cbdi.drv.card.ICardState;
 import cbdi.drv.card.ReadCard;
+import cbdi.drv.card.ReadCard2;
 import cbdi.log.Lg;
 
 /**
@@ -34,7 +35,7 @@ public class IDCardImpl implements IIDCard {
         mylistener = listener;
         try {
             if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")) {
-                cardInfo = new ReadCard(115200, "/dev/ttyS1", m_onCardState);
+                cardInfo = new ReadCard2(115200, "/dev/ttyS1", m_onCardState);
             } else if (AppInit.getMyManager().getAndroidDisplay().startsWith("rk3368")) {
                 cardInfo = new CardInfo("/dev/ttyS0", m_onCardState);
             } else if (AppInit.getInstrumentConfig().getClass().getName().equals(SXYZB_Config.class.getName())) {
@@ -49,6 +50,7 @@ public class IDCardImpl implements IIDCard {
                     cardInfo = new CardInfoRk123x("/dev/ttyS1", m_onCardState);
                 }
             }
+//            cardInfo = new ReadCard2(115200, "/dev/ttyS1", m_onCardState);
             cardInfo.setDevType("rk3368");
             cdevfd = cardInfo.open();
             if (cdevfd >= 0) {
