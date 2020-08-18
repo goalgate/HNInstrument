@@ -18,7 +18,7 @@ public class HLJ_Config extends BaseConfig {
 
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override

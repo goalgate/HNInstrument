@@ -1,6 +1,7 @@
 package com.hninstrument.Tools;
 
 import com.hninstrument.AppInit;
+import com.ys.rkapi.Utils.NetUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

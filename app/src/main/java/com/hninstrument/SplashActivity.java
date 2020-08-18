@@ -11,6 +11,7 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
+import com.hninstrument.Config.NMGYZB_Config;
 import com.hninstrument.Config.SHDMJ_config;
 import com.hninstrument.Config.SHGJ_Config;
 import com.hninstrument.Config.SH_Config;
@@ -52,6 +53,12 @@ public class SplashActivity extends Activity {
             }
             if("http://hnyzb.wxhxp.cn:1093/cjy/s/".equals(SP_Config.getString("ServerId"))){
                 SP_Config.put("ServerId","http://hnyzb.wxhxp.cn:1093/");
+            }
+            if("http://hnyzb.wxhxp.cn:1093/cjy/s/".equals(SP_Config.getString("ServerId"))){
+                SP_Config.put("ServerId","http://hnyzb.wxhxp.cn:1093/");
+            }
+            if("http://xajy.snaq.cn:8886/".equals(SP_Config.getString("ServerId"))&&AppInit.getInstrumentConfig().getClass().getName().equals(NMGYZB_Config.class.getName())){
+                SP_Config.put("ServerId",AppInit.getInstrumentConfig().getServerId());
             }
             if(AppInit.getInstrumentConfig().getClass().getName().equals(HuBeiWeiHua_Config.class.getName())){
                 ActivityUtils.startActivity(getPackageName(), getPackageName() + ".CBSD_HuBeiWeiHuaActivity");

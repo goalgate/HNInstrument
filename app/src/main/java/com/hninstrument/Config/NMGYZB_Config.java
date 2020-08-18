@@ -24,7 +24,7 @@ public class NMGYZB_Config extends BaseConfig{
 
     @Override
     public String getServerId() {
-        return "http://113.140.1.138:8890";
+        return "http://113.140.1.138:8890/";
     }
 
     @Override

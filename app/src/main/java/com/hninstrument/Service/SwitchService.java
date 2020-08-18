@@ -16,6 +16,7 @@ import com.hninstrument.AppInit;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Builder.SocketBuilder;
 import com.hninstrument.Config.BaseConfig;
+import com.hninstrument.Config.GDMB_Config;
 import com.hninstrument.Config.HeBei_Config;
 import com.hninstrument.Config.LN_Config;
 import com.hninstrument.Config.SHDMJ_config;
@@ -45,6 +46,9 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -130,31 +134,50 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
         EventBus.getDefault().register(this);
         lock = Lock.getInstance(new State_Lockup(sp));
         autoUpdate();
-        dis_testNet = Observable.interval(5, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
+        dis_testNet = Observable.interval(0, 30, TimeUnit.SECONDS).observeOn(Schedulers.io())
                 .subscribe(new Consumer<Long>() {
                     @Override
                     public void accept(Long aLong) throws Exception {
-                        connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
-                                , config.getString("ServerId"), new ServerConnectionUtil.Callback() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        if (response != null) {
-                                            if (response.startsWith("true")) {
-                                                if (!network_State) {
-                                                    updata();
+                        if(AppInit.getInstrumentConfig().getClass().getName().equals(GDMB_Config.class.getName())){
+                            try {
+                                if (testTcp(AppInit.getInstrumentConfig().getServerId())) {
+                                    if (!network_State) {
+                                        updata();
+                                    }
+                                    network_State = true;
+                                    EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
+                                } else {
+                                    network_State = false;
+                                    EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                                }
+                            }catch (Exception e){
+                                    ToastUtils.showLong(e.toString());
+                            }
+
+
+                        }else{
+                            connectionUtil.post(config.getString("ServerId") + type.getUpDataPrefix() + "daid=" + config.getString("devid") + "&dataType=test"/*&pass=" + new SafeCheck().getPass(config.getString("devid"))*/
+                                    , config.getString("ServerId"), new ServerConnectionUtil.Callback() {
+                                        @Override
+                                        public void onResponse(String response) {
+                                            if (response != null) {
+                                                if (response.startsWith("true")) {
+                                                    if (!network_State) {
+                                                        updata();
+                                                    }
+                                                    network_State = true;
+                                                    EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
+                                                } else {
+                                                    network_State = false;
+                                                    EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
                                                 }
-                                                network_State = true;
-                                                EventBus.getDefault().post(new NetworkEvent(true, "服务器连接正常"));
                                             } else {
                                                 network_State = false;
-                                                EventBus.getDefault().post(new NetworkEvent(false, "设备出错"));
+                                                EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                             }
-                                        } else {
-                                            network_State = false;
-                                            EventBus.getDefault().post(new NetworkEvent(false, "服务器连接出错"));
                                         }
-                                    }
-                                });
+                                    });
+                        }
                     }
                 });
 
@@ -291,7 +314,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     private void autoUpdate() {
 //        if(AppInit.getMyManager().getAndroidDisplay().startsWith("rk3288")){
-        if(AppInit.getInstrumentConfig().getClass().getName().equals(LN_Config.class.getName())){
+        if (AppInit.getInstrumentConfig().getClass().getName().equals(LN_Config.class.getName())) {
             connectionUtil.download("http://124.172.232.89:8050/daServer/updateEWC.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                 @Override
                 public void onResponse(String response) {
@@ -302,7 +325,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                     }
                 }
             });
-        }else{
+        } else {
             connectionUtil.download("http://124.172.232.89:8050/daServer/updateADA.do?ver=" + AppUtils.getAppVersionName() + "&url=" + config.getString("ServerId") + "&daid=" + config.getString("devid"), config.getString("ServerId"), new ServerConnectionUtil.Callback() {
                 @Override
                 public void onResponse(String response) {
@@ -341,6 +364,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
                                                         for (String id : idList) {
                                                             SPUtils.getInstance("personData").put(id, "1");
                                                         }
+//                                                        SPUtils.getInstance("personData").put("44128219830820403X", "1");
                                                     } else {
                                                         ToastUtils.showLong("没有相应仓管员信息");
                                                     }
@@ -417,7 +441,7 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
 
     @Override
     public void onSwitchingText(String value) {
-        if (value.startsWith("AAAAAA")) {
+        if (value.equals("AAAAAA000000000000") || value.equals("AAAAAA000001000000")) {
             if ((Last_Value == null || Last_Value.equals(""))) {
                 Last_Value = value;
             }
@@ -623,6 +647,38 @@ public class SwitchService extends Service implements ISwitchView, INetDaSocketE
         if (cmdType == netDa.getCmd().cmdType_di) {
             //Lg.v("onDI:",""+cmdType+"_"+value);
             daData.setDI(value);
+        }
+    }
+
+
+    public static boolean testTcp(String ServerId) {
+
+        int firstColon = ServerId.indexOf(":");
+        int lastColon = ServerId.lastIndexOf(":");
+        int lastSlash = ServerId.lastIndexOf("/");
+        String ip = ServerId.substring(firstColon + 3, lastColon);
+        int port = Integer.valueOf(ServerId.substring(lastColon + 1, lastSlash));
+        Log.e("ip", ip);
+        Log.e("port", String.valueOf(port));
+
+        if (ip == null || ip.trim().equals("")) {
+            return false;
+        }
+        Socket connect = new Socket();
+        try {
+            connect.connect(new InetSocketAddress(ip, port), 100);
+            boolean res = connect.isConnected();
+            return res;
+        } catch (IOException e) {
+            return false;
+            // System.out.println("false");
+            // e.printStackTrace();
+        } finally {
+            try {
+                connect.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

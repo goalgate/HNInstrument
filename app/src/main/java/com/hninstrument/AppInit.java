@@ -8,10 +8,14 @@ import android.os.Environment;
 import com.blankj.utilcode.util.Utils;
 import com.hninstrument.Config.BaseConfig;
 import com.hninstrument.Config.GDMB_Config;
+import com.hninstrument.Config.GZ_Config;
+import com.hninstrument.Config.HLJ_Config;
 import com.hninstrument.Config.HNFB_Config;
+import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeNanYZB_Config;
 import com.hninstrument.Config.HuBeiWeiHua_Config;
 import com.hninstrument.Config.LN_Config;
+import com.hninstrument.Config.NMGYZB_Config;
 import com.hninstrument.Config.XAYZB_Config;
 import com.hninstrument.Config.XA_Config;
 import com.hninstrument.Tools.WZWManager;
@@ -82,7 +86,7 @@ public class AppInit extends Application {
 
         instance = this;
 
-        InstrumentConfig = new GDMB_Config();
+        InstrumentConfig = new XAYZB_Config();
 
         manager = WZWManager.getInstance(this);
 

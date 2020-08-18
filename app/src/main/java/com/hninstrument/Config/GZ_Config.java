@@ -12,9 +12,10 @@ public class GZ_Config extends BaseConfig {
     public String hardware() {
         return "rk3128";
     }
+
     @Override
     public boolean isFace() {
-        return true;
+        return false;
     }
 
     @Override

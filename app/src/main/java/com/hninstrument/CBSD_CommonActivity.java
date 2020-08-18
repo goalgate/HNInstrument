@@ -14,12 +14,10 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 
-import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.SPUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.hninstrument.Bean.DataFlow.ReUploadBean;
 import com.hninstrument.Bean.DataFlow.UpCheckRecordData;
-import com.hninstrument.Config.HN_Config;
 import com.hninstrument.Config.HeBeiDanNing_Config;
 import com.hninstrument.EventBus.CloseDoorEvent;
 import com.hninstrument.EventBus.ExitEvent;
@@ -194,7 +192,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
         try {
             headphoto = bmp;
         }catch (Exception e){
-            ToastUtils.showLong(e.toString());
+            ToastUtils.showLong("身份证照片"+e.toString());
             Lg.e("要捕捉的异常",e.toString());
         }
     }
@@ -292,7 +290,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                 }
             }
         }catch (Exception e){
-            ToastUtils.showLong(e.toString());
+            ToastUtils.showLong("身份证信息"+e.toString());
             Lg.e("要捕捉的异常",e.toString());
         }
 
@@ -329,7 +327,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                 unknownPersonData();
             }
         }catch (Exception e){
-            ToastUtils.showLong(e.toString());
+            ToastUtils.showLong("拍照"+e.toString());
             Lg.e("要捕捉的异常",e.toString());
         }
 
@@ -438,7 +436,7 @@ public class CBSD_CommonActivity extends CBSD_FunctionActivity {
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();
                                 } catch (Exception e) {
-                                    ToastUtils.showLong(e.toString());
+                                    ToastUtils.showLong("人脸比对"+e.toString());
                                     tips.setText("人脸比对失败  "+response);
                                     pp.setDisplay(surfaceView.getHolder());
                                     idp.readCard();

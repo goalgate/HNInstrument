@@ -8,7 +8,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public String hardware() {
-        return "rk3128";
+        return "rk3288";
     }
 
     @Override
@@ -28,7 +28,7 @@ public class XA_Config extends BaseConfig {
 
     @Override
     public String getServerId() {
-        return "http://xajy.snaq.cn:8886/";
+            return "http://xajy.snaq.cn:8886/";
     }
 
     @Override
